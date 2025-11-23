@@ -2,14 +2,17 @@
 
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AppProvider } from '@/contexts/AppContext';
+import { ReactQueryProvider } from '@/lib/react-query';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <LanguageProvider>
-      <AppProvider>
-        {children}
-      </AppProvider>
-    </LanguageProvider>
+    <ReactQueryProvider>
+      <LanguageProvider>
+        <AppProvider>
+          {children}
+        </AppProvider>
+      </LanguageProvider>
+    </ReactQueryProvider>
   );
 }
 

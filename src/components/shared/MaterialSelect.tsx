@@ -33,7 +33,7 @@ export function MaterialSelect({
         </SelectTrigger>
         <SelectContent>
           {materials.map((material) => (
-            <SelectItem key={material.id} value={material.id}>
+            <SelectItem key={material.material_id} value={material.material_id}>
               {material.name} ({material.unit})
             </SelectItem>
           ))}

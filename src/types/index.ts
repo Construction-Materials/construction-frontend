@@ -1,9 +1,10 @@
 export interface Material {
-  id: string;
+  material_id: string;
+  category_id: string;
   name: string;
+  description: string;
   unit: string;
-  category: string;
-  description?: string;
+  created_at: string;
 }
 
 export interface ConstructionMaterial {
@@ -24,13 +25,12 @@ export interface Order {
 }
 
 export interface Construction {
-  id: string;
+  construction_id: string;
   name: string;
-  location: string;
-  startDate: string;
+  description: string;
+  address: string;
+  start_date: string;
   status: 'planned' | 'active' | 'completed';
-  manager: string;
-  description?: string;
-  materials: ConstructionMaterial[];
+  created_at: string;
 }
 

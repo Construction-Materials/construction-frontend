@@ -195,7 +195,7 @@ export function OrdersManager({
             </TableHeader>
             <TableBody>
               {orders.map((order) => {
-                const material = materials.find(m => m.id === order.materialId);
+                const material = materials.find(m => m.material_id === order.materialId);
                 if (!material) return null;
                 
                 const StatusIcon = getStatusIcon(order.status);

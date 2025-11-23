@@ -2,15 +2,20 @@
 
 import { ConstructionList } from '@/components/construction-list';
 import { Header } from '@/components/shared/Header';
-import { useApp } from '@/contexts/AppContext';
 import { useRouter } from 'next/navigation';
+import { useConstructions, useCreateConstruction } from '@/hooks/use-constructions';
 
 export default function HomePage() {
-  const { constructions, addConstruction } = useApp();
   const router = useRouter();
+  const { data, isLoading, error } = useConstructions();
+  const createMutation = useCreateConstruction();
 
   const handleSelectConstruction = (id: string) => {
     router.push(`/dashboard/${id}`);
+  };
+
+  const handleAddConstruction = async (construction: Omit<import('@/types').Construction, 'construction_id' | 'created_at'>) => {
+    await createMutation.mutateAsync(construction);
   };
 
   return (
@@ -18,9 +23,11 @@ export default function HomePage() {
       <Header />
       <main className="container mx-auto px-4 py-8">
         <ConstructionList
-          constructions={constructions}
+          constructions={data?.constructions || []}
+          isLoading={isLoading}
+          error={error}
           onSelectConstruction={handleSelectConstruction}
-          onAddConstruction={addConstruction}
+          onAddConstruction={handleAddConstruction}
         />
       </main>
     </div>

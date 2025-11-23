@@ -194,14 +194,15 @@ export function DeliveryNoteImport({
         // Create new material
         materialId = `material-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         newMaterials.push({
-          id: materialId,
+          material_id: materialId,
+          category_id: pm.category, // W przyszłości może być mapowanie na category_id
           name: pm.name,
           unit: pm.unit,
-          category: pm.category,
-          description: pm.description
+          description: pm.description || '',
+          created_at: new Date().toISOString()
         });
       } else {
-        materialId = existingMaterial.id;
+        materialId = existingMaterial.material_id;
       }
 
       // Check if material already exists in construction inventory
@@ -222,7 +223,7 @@ export function DeliveryNoteImport({
     });
 
     // Update construction with new materials in inventory
-    onUpdateConstruction(construction.id, { 
+    onUpdateConstruction(construction.construction_id, { 
       materials: updatedConstructionMaterials 
     });
 

@@ -9,7 +9,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Building2, MapPin, Calendar, User, Plus } from 'lucide-react';
+import { Building2, MapPin, Calendar, Plus } from 'lucide-react';
 import { appConfig } from '../config/app-config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { StatusBadge } from './shared/StatusBadge';
@@ -17,40 +17,43 @@ import { EmptyState } from './shared/EmptyState';
 
 interface ConstructionListProps {
   constructions: Construction[];
+  isLoading?: boolean;
+  error?: Error | null;
   onSelectConstruction: (id: string) => void;
-  onAddConstruction: (construction: Omit<Construction, 'id'>) => void;
+  onAddConstruction: (construction: Omit<Construction, 'construction_id' | 'created_at'>) => Promise<void>;
 }
 
 export function ConstructionList({
   constructions,
+  isLoading = false,
+  error,
   onSelectConstruction,
   onAddConstruction
 }: ConstructionListProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    location: '',
-    startDate: '',
+    address: '',
+    start_date: '',
     status: 'planned' as Construction['status'],
-    manager: '',
     description: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onAddConstruction({
-      ...formData,
-      materials: []
-    });
-    setFormData({
-      name: '',
-      location: '',
-      startDate: '',
-      status: 'planned',
-      manager: '',
-      description: ''
-    });
-    setDialogOpen(false);
+    try {
+      await onAddConstruction(formData);
+      setFormData({
+        name: '',
+        address: '',
+        start_date: '',
+        status: 'planned',
+        description: ''
+      });
+      setDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to add construction:', error);
+    }
   };
 
   const { t } = useLanguage();
@@ -88,23 +91,23 @@ export function ConstructionList({
                 />
               </div>
               <div className={appConfig.spacing.formFields}>
-                <Label htmlFor="location">{t.location} *</Label>
+                <Label htmlFor="address">{t.location} *</Label>
                 <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   placeholder={t.locationPlaceholder}
                   required
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className={appConfig.spacing.formFields}>
-                  <Label htmlFor="startDate">{t.startDate} *</Label>
+                  <Label htmlFor="start_date">{t.startDate} *</Label>
                   <Input
-                    id="startDate"
+                    id="start_date"
                     type="date"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    value={formData.start_date}
+                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                     required
                   />
                 </div>
@@ -124,16 +127,6 @@ export function ConstructionList({
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div className={appConfig.spacing.formFields}>
-                <Label htmlFor="manager">{t.constructionManager} *</Label>
-                <Input
-                  id="manager"
-                  value={formData.manager}
-                  onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
-                  placeholder={t.managerPlaceholder}
-                  required
-                />
               </div>
               <div className={appConfig.spacing.formFields}>
                 <Label htmlFor="description">{t.description}</Label>
@@ -162,12 +155,25 @@ export function ConstructionList({
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {constructions.map((construction) => (
+      {isLoading && (
+        <div className="text-center py-12">
+          <p className="text-slate-600">Ładowanie...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="text-center py-12">
+          <p className="text-red-600">Błąd podczas ładowania konstrukcji: {error.message}</p>
+        </div>
+      )}
+
+      {!isLoading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {constructions.map((construction) => (
           <Card
-            key={construction.id}
+            key={construction.construction_id}
             className="hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => onSelectConstruction(construction.id)}
+            onClick={() => onSelectConstruction(construction.construction_id)}
           >
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
@@ -182,22 +188,19 @@ export function ConstructionList({
             <CardContent className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <MapPin className="size-4 flex-shrink-0" />
-                <span>{construction.location}</span>
+                <span>{construction.address}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Calendar className="size-4 flex-shrink-0" />
-                <span>{t.startedOn}: {new Date(construction.startDate).toLocaleDateString(t.locale)}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-slate-600">
-                <User className="size-4 flex-shrink-0" />
-                <span>{construction.manager}</span>
+                <span>{t.startedOn}: {new Date(construction.start_date).toLocaleDateString(t.locale)}</span>
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {constructions.length === 0 && (
+      {!isLoading && !error && constructions.length === 0 && (
         <EmptyState
           icon={Building2}
           title={t.noConstructions}

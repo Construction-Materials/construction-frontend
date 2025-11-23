@@ -74,16 +74,13 @@ export function ConstructionDashboard({
         <TabsContent value="inventory" className="mt-6">
           <MaterialsInventory
             construction={construction}
-            materials={materials}
-            onUpdateConstruction={onUpdateConstruction}
-            onAddMaterial={onAddMaterial}
             onGoToDeliveryNoteImport={() => setActiveTab('import')}
           />
         </TabsContent>
 
         <TabsContent value="orders" className="mt-6">
           <OrdersManager
-            constructionId={construction.id}
+            constructionId={construction.construction_id}
             materials={materials}
             orders={orders}
             onAddOrder={onAddOrder}

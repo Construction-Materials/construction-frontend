@@ -13,7 +13,7 @@ interface AppContextType {
   addMaterial: (material: Material) => void;
   updateMaterial: (id: string, updates: Partial<Material>) => void;
   deleteMaterial: (id: string) => void;
-  addConstruction: (construction: Omit<Construction, 'id'>) => void;
+  addConstruction: (construction: Omit<Construction, 'construction_id' | 'created_at'>) => void;
   updateConstruction: (id: string, updates: Partial<Construction>) => void;
   addOrder: (order: Omit<Order, 'id'>) => void;
   updateOrder: (id: string, updates: Partial<Order>) => void;
@@ -23,53 +23,49 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const initialMaterials: Material[] = [
   {
-    id: '1',
+    material_id: '1',
+    category_id: 'cat-1',
     name: 'Cement',
     unit: 'kg',
-    category: 'Materiały podstawowe',
-    description: 'Cement portlandzki CEM I 42,5R'
+    description: 'Cement portlandzki CEM I 42,5R',
+    created_at: new Date().toISOString()
   },
   {
-    id: '2',
+    material_id: '2',
+    category_id: 'cat-2',
     name: 'Cegła ceramiczna',
     unit: 'szt',
-    category: 'Materiały murowe',
-    description: 'Cegła pełna klasy 15'
+    description: 'Cegła pełna klasy 15',
+    created_at: new Date().toISOString()
   },
   {
-    id: '3',
+    material_id: '3',
+    category_id: 'cat-3',
     name: 'Drewno konstrukcyjne',
     unit: 'm³',
-    category: 'Drewno',
-    description: 'Drewno konstrukcyjne C24'
+    description: 'Drewno konstrukcyjne C24',
+    created_at: new Date().toISOString()
   }
 ];
 
 const initialConstructions: Construction[] = [
   {
-    id: '1',
+    construction_id: '1',
     name: 'Budowa domu jednorodzinnego - ul. Słoneczna 15',
-    location: 'Warszawa, ul. Słoneczna 15',
-    startDate: '2024-01-15',
-    status: 'active',
-    manager: 'Jan Kowalski',
     description: 'Dom jednorodzinny, pow. 150m²',
-    materials: [
-      { materialId: '1', quantity: 5000 },
-      { materialId: '2', quantity: 15000 }
-    ]
+    address: 'Warszawa, ul. Słoneczna 15',
+    start_date: '2024-01-15',
+    status: 'active',
+    created_at: '2024-01-01T00:00:00.000Z'
   },
   {
-    id: '2',
+    construction_id: '2',
     name: 'Remont kamienicy - Stare Miasto 8',
-    location: 'Kraków, Stare Miasto 8',
-    startDate: '2024-02-01',
-    status: 'active',
-    manager: 'Anna Nowak',
     description: 'Remont elewacji i modernizacja wnętrza',
-    materials: [
-      { materialId: '3', quantity: 25 }
-    ]
+    address: 'Kraków, Stare Miasto 8',
+    start_date: '2024-02-01',
+    status: 'active',
+    created_at: '2024-01-15T00:00:00.000Z'
   }
 ];
 
@@ -104,16 +100,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMaterials(prev => prev.filter(m => m.id !== id));
   };
 
-  const addConstruction = (construction: Omit<Construction, 'id'>) => {
+  const addConstruction = (construction: Omit<Construction, 'construction_id' | 'created_at'>) => {
     const newConstruction: Construction = {
       ...construction,
-      id: Date.now().toString()
+      construction_id: Date.now().toString(),
+      created_at: new Date().toISOString()
     };
     setConstructions(prev => [...prev, newConstruction]);
   };
 
   const updateConstruction = (id: string, updates: Partial<Construction>) => {
-    setConstructions(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    setConstructions(prev => prev.map(c => c.construction_id === id ? { ...c, ...updates } : c));
   };
 
   const addOrder = (order: Omit<Order, 'id'>) => {

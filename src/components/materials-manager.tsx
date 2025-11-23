@@ -25,7 +25,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 interface MaterialsManagerProps {
   materials: Material[];
-  onAddMaterial: (material: Omit<Material, 'id'>) => void;
+  onAddMaterial: (material: Omit<Material, 'material_id' | 'created_at'>) => void;
   onUpdateMaterial: (id: string, updates: Partial<Material>) => void;
   onDeleteMaterial: (id: string) => void;
   onGoToAddMaterial: () => void;
@@ -61,10 +61,10 @@ export function MaterialsManager({
     setFormData({
       name: material.name,
       unit: material.unit,
-      category: material.category,
+      category: material.category_id,
       description: material.description || ''
     });
-    setSelectedMaterialId(material.id);
+    setSelectedMaterialId(material.material_id);
     setEditDialogOpen(true);
   };
 
@@ -127,10 +127,10 @@ export function MaterialsManager({
               </TableHeader>
               <TableBody>
                 {materials.map((material) => (
-                  <TableRow key={material.id}>
+                  <TableRow key={material.material_id}>
                     <TableCell>{material.name}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{material.category}</Badge>
+                      <Badge variant="outline">{material.category_id}</Badge>
                     </TableCell>
                     <TableCell>{material.unit}</TableCell>
                     <TableCell className="max-w-xs">
@@ -150,7 +150,7 @@ export function MaterialsManager({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => openDeleteDialog(material.id)}
+                          onClick={() => openDeleteDialog(material.material_id)}
                         >
                           <Trash2 className="size-4 text-red-600" />
                         </Button>
