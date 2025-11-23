@@ -20,10 +20,10 @@ interface MaterialFormData {
 
 interface AddMaterialsFormProps {
   onAddMaterials: (materials: MaterialFormData[]) => void;
-  existingCategories: string[];
+  categories: Array<{ category_id: string; name: string }>;
 }
 
-export function AddMaterialsForm({ onAddMaterials, existingCategories }: AddMaterialsFormProps) {
+export function AddMaterialsForm({ onAddMaterials, categories }: AddMaterialsFormProps) {
   const [materials, setMaterials] = useState<MaterialFormData[]>([
     { name: '', unit: '', category: '', description: '' }
   ]);
@@ -138,11 +138,17 @@ export function AddMaterialsForm({ onAddMaterials, existingCategories }: AddMate
                           <SelectValue placeholder={t.selectCategory} />
                         </SelectTrigger>
                         <SelectContent>
-                          {existingCategories.map(cat => (
-                            <SelectItem key={cat} value={cat}>
-                              {cat}
-                            </SelectItem>
-                          ))}
+                          {categories.length === 0 ? (
+                            <div className="px-2 py-6 text-center text-sm text-slate-500">
+                              Brak kategorii
+                            </div>
+                          ) : (
+                            categories.map(category => (
+                              <SelectItem key={category.category_id} value={category.category_id}>
+                                {category.name}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                     </div>

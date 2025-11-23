@@ -19,12 +19,15 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useConstruction, useUpdateConstruction, useDeleteConstruction } from '@/hooks/use-constructions';
+import { useMaterials } from '@/hooks/use-materials';
 
 export default function DashboardPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const { materials, orders, addMaterial, addOrder, updateOrder } = useApp();
+  const { orders, addOrder, updateOrder } = useApp();
+  const { data: materialsData } = useMaterials();
+  const materials = materialsData?.materials || [];
   const { t } = useLanguage();
   const { data: construction, isLoading, error } = useConstruction(id);
   const updateMutation = useUpdateConstruction();
@@ -95,7 +98,6 @@ export default function DashboardPage() {
           materials={materials}
           orders={constructionOrders}
           onUpdateConstruction={handleUpdateConstruction}
-          onAddMaterial={addMaterial}
           onAddOrder={addOrder}
           onUpdateOrder={updateOrder}
         />

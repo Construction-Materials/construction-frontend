@@ -5,29 +5,19 @@ import { AddMaterialsForm } from '@/components/add-materials-form';
 import { Header } from '@/components/shared/Header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { appConfig } from '@/config/app-config';
-import { Material } from '@/types';
+import { useCategories } from '@/hooks/use-categories';
+import { Category } from '@/types';
 
 export default function AddMaterialsPage() {
   const router = useRouter();
-  const { materials, setMaterials } = useApp();
   const { t } = useLanguage();
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.categories || [];
 
-  const uniqueCategories = Array.from(
-    new Set([
-      ...appConfig.defaultCategories,
-      ...materials.map(m => m.category).filter(Boolean)
-    ])
-  );
-
-  const handleAddMaterials = (newMaterials: Omit<Material, 'id'>[]) => {
-    const materialsWithIds = newMaterials.map(material => ({
-      ...material,
-      id: Date.now().toString() + Math.random().toString()
-    }));
-    setMaterials([...materials, ...materialsWithIds]);
+  const handleAddMaterials = (newMaterials: Array<{ name: string; unit: string; category: string; description: string }>) => {
+    // TODO: Implement via API - createMaterial
+    console.log('Add materials:', newMaterials);
     router.push('/materials');
   };
 
@@ -47,7 +37,7 @@ export default function AddMaterialsPage() {
         </div>
         <AddMaterialsForm
           onAddMaterials={handleAddMaterials}
-          existingCategories={uniqueCategories}
+          categories={categories}
         />
       </main>
     </div>

@@ -13,12 +13,12 @@ import { Badge } from './ui/badge';
 import { Upload, FileText, Plus, Pencil, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
 import { appConfig } from '../config/app-config';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useCategories } from '@/hooks/use-categories';
 
 interface DeliveryNoteImportProps {
   construction: Construction;
   materials: Material[];
   onUpdateConstruction: (id: string, updates: Partial<Construction>) => void;
-  onAddMaterial: (material: Material) => void;
   onComplete: () => void;
 }
 
@@ -42,7 +42,6 @@ export function DeliveryNoteImport({
   construction,
   materials,
   onUpdateConstruction,
-  onAddMaterial,
   onComplete
 }: DeliveryNoteImportProps) {
   const [processing, setProcessing] = useState(false);
@@ -180,7 +179,8 @@ export function DeliveryNoteImport({
   const handleAddToInventory = () => {
     // First, collect new materials that don't exist yet
     const newMaterials: Material[] = [];
-    const updatedConstructionMaterials = [...construction.materials];
+    // TODO: Materials are now managed via API endpoint /api/v1/materials/by-construction/{construction_id}
+    // This function needs to be refactored to use API
 
     parsedMaterials.forEach(pm => {
       // Check if material already exists in global materials
@@ -205,30 +205,11 @@ export function DeliveryNoteImport({
         materialId = existingMaterial.material_id;
       }
 
-      // Check if material already exists in construction inventory
-      const existingInInventory = updatedConstructionMaterials.find(
-        cm => cm.materialId === materialId
-      );
-
-      if (existingInInventory) {
-        // Update quantity
-        existingInInventory.quantity += pm.quantity;
-      } else {
-        // Add to inventory
-        updatedConstructionMaterials.push({
-          materialId: materialId,
-          quantity: pm.quantity
-        });
-      }
+      // TODO: Check if material already exists in construction inventory via API
     });
 
-    // Update construction with new materials in inventory
-    onUpdateConstruction(construction.construction_id, { 
-      materials: updatedConstructionMaterials 
-    });
-
-    // Add new materials to global materials list
-    newMaterials.forEach(material => onAddMaterial(material));
+    // TODO: Add new materials via API
+    // newMaterials.forEach(material => createMaterial(material));
 
     // Reset state
     setParsedMaterials([]);
@@ -245,12 +226,9 @@ export function DeliveryNoteImport({
     setEditingId(null);
   };
 
-  const existingCategories = Array.from(
-    new Set([
-      ...appConfig.defaultCategories,
-      ...materials.map(m => m.category).filter(Boolean)
-    ])
-  );
+  // TODO: Get categories from API instead of materials
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.categories || [];
 
   return (
     <Card>
@@ -328,7 +306,7 @@ export function DeliveryNoteImport({
                                 const selectedMaterial = materials.find(m => m.name === value);
                                 if (selectedMaterial) {
                                   newRows[index].unit = selectedMaterial.unit;
-                                  newRows[index].category = selectedMaterial.category;
+                                  newRows[index].category = selectedMaterial.category_id;
                                 }
                                 setManualMaterials(newRows);
                               }}
@@ -338,7 +316,7 @@ export function DeliveryNoteImport({
                               </SelectTrigger>
                               <SelectContent>
                                 {materials.map(material => (
-                                  <SelectItem key={material.id} value={material.name}>
+                                  <SelectItem key={material.material_id} value={material.name}>
                                     {material.name}
                                   </SelectItem>
                                 ))}
@@ -379,11 +357,17 @@ export function DeliveryNoteImport({
                                 <SelectValue placeholder="Wybierz" />
                               </SelectTrigger>
                               <SelectContent>
-                                {existingCategories.map(cat => (
-                                  <SelectItem key={cat} value={cat}>
-                                    {cat}
-                                  </SelectItem>
-                                ))}
+                                {categories.length === 0 ? (
+                                  <div className="px-2 py-6 text-center text-sm text-slate-500">
+                                    Brak kategorii
+                                  </div>
+                                ) : (
+                                  categories.map(category => (
+                                    <SelectItem key={category.category_id} value={category.category_id}>
+                                      {category.name}
+                                    </SelectItem>
+                                  ))
+                                )}
                               </SelectContent>
                             </Select>
                           </TableCell>
@@ -473,7 +457,7 @@ export function DeliveryNoteImport({
                                     ...editForm,
                                     name: value,
                                     unit: selectedMaterial.unit,
-                                    category: selectedMaterial.category
+                                    category: selectedMaterial.category_id
                                   });
                                 }
                               }}
@@ -483,7 +467,7 @@ export function DeliveryNoteImport({
                               </SelectTrigger>
                               <SelectContent>
                                 {materials.map(material => (
-                                  <SelectItem key={material.id} value={material.name}>
+                                  <SelectItem key={material.material_id} value={material.name}>
                                     {material.name}
                                   </SelectItem>
                                 ))}
@@ -514,11 +498,17 @@ export function DeliveryNoteImport({
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                {existingCategories.map(cat => (
-                                  <SelectItem key={cat} value={cat}>
-                                    {cat}
-                                  </SelectItem>
-                                ))}
+                                {categories.length === 0 ? (
+                                  <div className="px-2 py-6 text-center text-sm text-slate-500">
+                                    Brak kategorii
+                                  </div>
+                                ) : (
+                                  categories.map(category => (
+                                    <SelectItem key={category.category_id} value={category.category_id}>
+                                      {category.name}
+                                    </SelectItem>
+                                  ))
+                                )}
                               </SelectContent>
                             </Select>
                           </TableCell>

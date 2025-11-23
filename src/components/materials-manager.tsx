@@ -8,9 +8,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
-import { Plus, Package, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Package, Pencil, Trash2, Tag } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +23,8 @@ import {
   AlertDialogTitle,
 } from './ui/alert-dialog';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useCategories } from '@/hooks/use-categories';
+import { CategoriesManager } from './categories-manager';
 
 interface MaterialsManagerProps {
   materials: Material[];
@@ -38,6 +41,7 @@ export function MaterialsManager({
 }: MaterialsManagerProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
   const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -81,7 +85,14 @@ export function MaterialsManager({
     }
   };
 
-  const categories = Array.from(new Set(materials.map(m => m.category_id)));
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.categories || [];
+
+  // Helper function to get category name by ID
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find(c => c.category_id === categoryId);
+    return category?.name || "Brak nazwy";
+  };
 
   const { t } = useLanguage();
 
@@ -96,10 +107,16 @@ export function MaterialsManager({
                 {t.manageMaterialsDesc}
               </CardDescription>
             </div>
-            <Button onClick={onGoToAddMaterial}>
-              <Plus className="size-4 mr-2" />
-              {t.addMaterials}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setCategoriesDialogOpen(true)}>
+                <Tag className="size-4 mr-2" />
+                Edit Categories
+              </Button>
+              <Button onClick={onGoToAddMaterial}>
+                <Plus className="size-4 mr-2" />
+                {t.addMaterials}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -144,7 +161,7 @@ export function MaterialsManager({
                   <TableRow key={material.material_id}>
                     <TableCell>{material.name}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{material.category_id}</Badge>
+                      <Badge variant="outline">{getCategoryName(material.category_id)}</Badge>
                     </TableCell>
                     <TableCell>{material.unit}</TableCell>
                     <TableCell className="max-w-xs">
@@ -208,18 +225,28 @@ export function MaterialsManager({
               </div>
               <div>
                 <Label htmlFor="edit-category">{t.category} *</Label>
-                <Input
-                  id="edit-category"
+                <Select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onValueChange={(value) => setFormData({ ...formData, category: value })}
                   required
-                  list="categories"
-                />
-                <datalist id="categories">
-                  {categories.map(cat => (
-                    <option key={cat} value={cat} />
-                  ))}
-                </datalist>
+                >
+                  <SelectTrigger id="edit-category">
+                    <SelectValue placeholder={t.selectCategory} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.length === 0 ? (
+                      <div className="px-2 py-6 text-center text-sm text-slate-500">
+                        Brak kategorii
+                      </div>
+                    ) : (
+                      categories.map(category => (
+                        <SelectItem key={category.category_id} value={category.category_id}>
+                          {category.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div>
@@ -263,6 +290,18 @@ export function MaterialsManager({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={categoriesDialogOpen} onOpenChange={setCategoriesDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Zarządzanie kategoriami</DialogTitle>
+            <DialogDescription>
+              Dodaj, edytuj lub usuń kategorie materiałów
+            </DialogDescription>
+          </DialogHeader>
+          <CategoriesManager />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

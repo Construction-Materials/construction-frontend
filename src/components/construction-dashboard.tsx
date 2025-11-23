@@ -17,7 +17,6 @@ interface ConstructionDashboardProps {
   materials: Material[];
   orders: Order[];
   onUpdateConstruction: (id: string, updates: Partial<Construction>) => void;
-  onAddMaterial: (material: Material) => void;
   onAddOrder: (order: Omit<Order, 'id'>) => void;
   onUpdateOrder: (id: string, updates: Partial<Order>) => void;
 }
@@ -27,7 +26,6 @@ export function ConstructionDashboard({
   materials,
   orders,
   onUpdateConstruction,
-  onAddMaterial,
   onAddOrder,
   onUpdateOrder
 }: ConstructionDashboardProps) {
@@ -94,7 +92,6 @@ export function ConstructionDashboard({
             construction={construction}
             materials={materials}
             onUpdateConstruction={onUpdateConstruction}
-            onAddMaterial={onAddMaterial}
             onComplete={() => setActiveTab('inventory')}
           />
         </TabsContent>
