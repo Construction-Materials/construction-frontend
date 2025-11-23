@@ -92,15 +92,6 @@ export function MaterialsInventory({
           )}
         </CardContent>
       </Card>
-
-      <Button
-        onClick={onGoToDeliveryNoteImport}
-        variant="outline"
-        className="flex items-center"
-      >
-        <Upload className="size-4 mr-2" />
-        {t.importDeliveryNote}
-      </Button>
     </div>
   );
 }
