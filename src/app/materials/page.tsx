@@ -5,13 +5,13 @@ import { MaterialsManager } from '@/components/materials-manager';
 import { Header } from '@/components/shared/Header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useMaterials } from '@/hooks/use-materials';
 
 export default function MaterialsPage() {
   const router = useRouter();
-  const { materials, addMaterial, updateMaterial, deleteMaterial } = useApp();
   const { t } = useLanguage();
+  const { data, isLoading, error } = useMaterials();
 
   const handleGoToAddMaterial = () => {
     router.push('/materials/add');
@@ -32,10 +32,9 @@ export default function MaterialsPage() {
           </Button>
         </div>
         <MaterialsManager
-          materials={materials}
-          onAddMaterial={addMaterial}
-          onUpdateMaterial={updateMaterial}
-          onDeleteMaterial={deleteMaterial}
+          materials={data?.materials || []}
+          isLoading={isLoading}
+          error={error}
           onGoToAddMaterial={handleGoToAddMaterial}
         />
       </main>

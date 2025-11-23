@@ -25,17 +25,15 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 interface MaterialsManagerProps {
   materials: Material[];
-  onAddMaterial: (material: Omit<Material, 'material_id' | 'created_at'>) => void;
-  onUpdateMaterial: (id: string, updates: Partial<Material>) => void;
-  onDeleteMaterial: (id: string) => void;
+  isLoading?: boolean;
+  error?: Error | null;
   onGoToAddMaterial: () => void;
 }
 
 export function MaterialsManager({
   materials,
-  onAddMaterial,
-  onUpdateMaterial,
-  onDeleteMaterial,
+  isLoading = false,
+  error,
   onGoToAddMaterial
 }: MaterialsManagerProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -51,7 +49,8 @@ export function MaterialsManager({
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedMaterialId) {
-      onUpdateMaterial(selectedMaterialId, formData);
+      // TODO: Implement update via API
+      console.log('Update material:', selectedMaterialId, formData);
       setEditDialogOpen(false);
       setSelectedMaterialId(null);
     }
@@ -75,13 +74,14 @@ export function MaterialsManager({
 
   const handleDelete = () => {
     if (selectedMaterialId) {
-      onDeleteMaterial(selectedMaterialId);
+      // TODO: Implement delete via API
+      console.log('Delete material:', selectedMaterialId);
       setDeleteDialogOpen(false);
       setSelectedMaterialId(null);
     }
   };
 
-  const categories = Array.from(new Set(materials.map(m => m.category)));
+  const categories = Array.from(new Set(materials.map(m => m.category_id)));
 
   const { t } = useLanguage();
 
@@ -103,7 +103,19 @@ export function MaterialsManager({
           </div>
         </CardHeader>
         <CardContent>
-          {materials.length === 0 ? (
+          {isLoading && (
+            <div className="text-center py-12">
+              <p className="text-slate-600">Ładowanie materiałów...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-red-600">Błąd podczas ładowania materiałów: {error.message}</p>
+            </div>
+          )}
+
+          {!isLoading && !error && materials.length === 0 && (
             <div className="text-center py-12">
               <Package className="size-12 text-slate-300 mx-auto mb-4" />
               <p className="text-slate-600 mb-4">
@@ -114,7 +126,9 @@ export function MaterialsManager({
                 {t.addMaterials}
               </Button>
             </div>
-          ) : (
+          )}
+
+          {!isLoading && !error && materials.length > 0 && (
             <Table>
               <TableHeader>
                 <TableRow>
