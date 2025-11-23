@@ -1,0 +1,38 @@
+'use client';
+
+import { LucideIcon } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
+
+interface EmptyStateProps {
+  icon: LucideIcon;
+  title: string;
+  description?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}
+
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  actionLabel,
+  onAction
+}: EmptyStateProps) {
+  return (
+    <Card className="text-center py-12">
+      <CardContent>
+        <Icon className="size-12 text-slate-300 mx-auto mb-4" />
+        <h3 className="text-slate-900 mb-2">{title}</h3>
+        {description && (
+          <p className="text-slate-600 mb-4">{description}</p>
+        )}
+        {actionLabel && onAction && (
+          <Button onClick={onAction}>
+            {actionLabel}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
