@@ -7,12 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Combobox } from './ui/combobox';
+import { DeliveryNoteMaterialsTable } from './delivery-note-materials-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { Badge } from './ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { Upload, FileText, Plus, Pencil, Trash2, CheckCircle2, Loader2, Info } from 'lucide-react';
+import { Upload, FileText, Plus, CheckCircle2, Loader2 } from 'lucide-react';
 import { appConfig } from '../config/app-config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
@@ -303,113 +300,22 @@ export function DeliveryNoteImport({
               <div className="space-y-4">
                 <Label>Wprowadź dane z delivery note</Label>
                 <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[300px]">Nazwa materiału</TableHead>
-                        <TableHead className="w-[120px]">Ilość</TableHead>
-                        <TableHead className="w-[120px]">Jednostka</TableHead>
-                        <TableHead className="w-[200px]">Kategoria</TableHead>
-                        <TableHead className="w-[150px] text-right">Akcje</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {manualMaterials.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Select
-                              value={row.name}
-                              onValueChange={(value) => {
-                                const newRows = [...manualMaterials];
-                                newRows[index].name = value;
-                                // Auto-fill unit and category if material exists
-                                const selectedMaterial = materials.find(m => m.name === value);
-                                if (selectedMaterial) {
-                                  newRows[index].unit = selectedMaterial.unit;
-                                  newRows[index].category = selectedMaterial.category_id;
-                                }
-                                setManualMaterials(newRows);
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Wybierz materiał" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {materials.map(material => (
-                                  <SelectItem key={material.material_id} value={material.name}>
-                                    {material.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={row.quantity}
-                              onChange={(e) => {
-                                const newRows = [...manualMaterials];
-                                newRows[index].quantity = e.target.value;
-                                setManualMaterials(newRows);
-                              }}
-                              placeholder="0"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={row.unit}
-                              disabled
-                              placeholder="Auto"
-                              className="bg-slate-50"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={row.category}
-                              onValueChange={(value) => {
-                                const newRows = [...manualMaterials];
-                                newRows[index].category = value;
-                                setManualMaterials(newRows);
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Wybierz" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {categories.length === 0 ? (
-                                  <div className="px-2 py-6 text-center text-sm text-slate-500">
-                                    Brak kategorii
-                                  </div>
-                                ) : (
-                                  categories.map(category => (
-                                    <SelectItem key={category.category_id} value={category.category_id}>
-                                      {category.name}
-                                    </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {manualMaterials.length > 1 && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  const newRows = [...manualMaterials];
-                                  newRows.splice(index, 1);
-                                  setManualMaterials(newRows);
-                                }}
-                              >
-                                <Trash2 className="size-4 text-red-600" />
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DeliveryNoteMaterialsTable
+                    mode="manual"
+                    manualMaterials={manualMaterials}
+                    onManualMaterialChange={(index, field, value) => {
+                      const newRows = [...manualMaterials];
+                      newRows[index][field] = value;
+                      setManualMaterials(newRows);
+                    }}
+                    onManualMaterialDelete={(index) => {
+                      const newRows = [...manualMaterials];
+                      newRows.splice(index, 1);
+                      setManualMaterials(newRows);
+                    }}
+                    materials={materials}
+                    categories={categories}
+                  />
                 </div>
                 <Button
                   type="button"
@@ -450,162 +356,21 @@ export function DeliveryNoteImport({
             </div>
 
             <div className="border rounded-lg">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[300px]">Materiał z dokumentu</TableHead>
-                    <TableHead className="w-[300px]">Materiał z bazy danych</TableHead>
-                    <TableHead className="w-[120px]">Ilość</TableHead>
-                    <TableHead className="w-[120px]">Jednostka</TableHead>
-                    <TableHead className="w-[100px] text-right"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {parsedMaterials.map((material) => (
-                    <TableRow key={material.id}>
-                      {editingId === material.id ? (
-                        <>
-                          <TableCell>
-                            <Input
-                              value={editForm.name}
-                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Combobox
-                              value={editForm.selected_material_id || 'brak-materialu'}
-                              onValueChange={(value) => {
-                                const actualMaterialId = value === 'brak-materialu' ? null : value;
-                                setEditForm({ ...editForm, selected_material_id: actualMaterialId || '' });
-                                const selectedMaterial = actualMaterialId ? materials.find(m => m.material_id === actualMaterialId) : null;
-                                if (selectedMaterial) {
-                                  setEditForm(prev => ({
-                                    ...prev,
-                                    selected_material_id: actualMaterialId || '',
-                                    unit: selectedMaterial.unit
-                                  }));
-                                } else {
-                                  setEditForm(prev => ({
-                                    ...prev,
-                                    selected_material_id: '',
-                                    unit: ''
-                                  }));
-                                }
-                              }}
-                              placeholder="Wybierz materiał"
-                              options={
-                                materials.length === 0
-                                  ? [{ value: 'brak-materialu', label: 'Brak materiałów' }]
-                                  : [
-                                      { value: 'brak-materialu', label: 'Brak dopasowania' },
-                                      ...materials.map(mat => ({
-                                        value: mat.material_id,
-                                        label: mat.name
-                                      }))
-                                    ]
-                              }
-                              emptyText="Brak wyników"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={editForm.quantity}
-                              onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={editForm.unit}
-                              disabled
-                              className="bg-slate-50"
-                            />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex gap-1 justify-end">
-                              <Button size="sm" onClick={handleSaveEdit}>
-                                <CheckCircle2 className="size-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setEditingId(null)}
-                              >
-                                Anuluj
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span>{material.name}</span>
-                              {material.suggested_materials && material.suggested_materials.length > 0 && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="size-4 text-blue-500 cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent className="max-w-xs">
-                                    <div className="space-y-1">
-                                      <p className="font-semibold">Sugerowane materiały:</p>
-                                      {material.suggested_materials.map((suggested, idx) => (
-                                        <div key={idx} className="text-sm">
-                                          • {suggested.name} ({suggested.similarity_score.toFixed(0)}% podobieństwa)
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Combobox
-                              value={material.selected_material_id || 'brak-materialu'}
-                              onValueChange={(value) => handleMaterialSelect(value, material.id)}
-                              placeholder="Wybierz materiał"
-                              options={
-                                materials.length === 0
-                                  ? [{ value: 'brak-materialu', label: 'Brak materiałów' }]
-                                  : [
-                                      { value: 'brak-materialu', label: 'Brak dopasowania' },
-                                      ...materials.map(mat => ({
-                                        value: mat.material_id,
-                                        label: mat.name
-                                      }))
-                                    ]
-                              }
-                              emptyText="Brak wyników"
-                            />
-                          </TableCell>
-                          <TableCell>{material.quantity.toLocaleString('pl-PL')}</TableCell>
-                          <TableCell>{material.unit}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex gap-1 justify-end">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEdit(material)}
-                              >
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDelete(material.id)}
-                              >
-                                <Trash2 className="size-4 text-red-600" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DeliveryNoteMaterialsTable
+                mode="parsed"
+                parsedMaterials={parsedMaterials}
+                editingId={editingId}
+                editForm={editForm}
+                onEdit={handleEdit}
+                onSaveEdit={handleSaveEdit}
+                onCancelEdit={() => setEditingId(null)}
+                onEditFormChange={(field, value) => {
+                  setEditForm(prev => ({ ...prev, [field]: value }));
+                }}
+                onMaterialSelect={handleMaterialSelect}
+                onDelete={handleDelete}
+                materials={materials}
+              />
             </div>
 
             <div className="flex gap-3 pt-4 border-t">

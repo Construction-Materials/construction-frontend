@@ -40,3 +40,9 @@ export interface Category {
   created_at: string;
 }
 
+export interface Storage {
+  storage_id: string;
+  construction_id: string;
+  name: string;
+  created_at: string;
+}
