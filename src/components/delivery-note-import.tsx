@@ -258,9 +258,9 @@ export function DeliveryNoteImport({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Import Delivery Note</CardTitle>
+        <CardTitle>{t.deliveryNoteImport}</CardTitle>
         <CardDescription>
-          Wgraj plik PDF/zdjęcie lub wprowadź dane ręcznie. System automatycznie rozpozna materiały.
+          {t.deliveryNoteImportDesc}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -269,11 +269,11 @@ export function DeliveryNoteImport({
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upload">
                 <Upload className="size-4 mr-2" />
-                Wgraj plik
+                {t.uploadFile}
               </TabsTrigger>
               <TabsTrigger value="manual">
                 <FileText className="size-4 mr-2" />
-                Wprowadź ręcznie
+                {t.enterManually}
               </TabsTrigger>
             </TabsList>
 
@@ -281,7 +281,7 @@ export function DeliveryNoteImport({
               <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
                 <Upload className="size-12 text-slate-400 mx-auto mb-4" />
                 <p className="text-sm text-slate-600 mb-4">
-                  Przeciągnij i upuść plik lub kliknij aby wybrać
+                  {t.dragAndDropFile}
                 </p>
                 <Input
                   type="file"
@@ -292,26 +292,26 @@ export function DeliveryNoteImport({
                 />
                 {selectedFile && (
                   <p className="text-sm text-slate-600 mt-4">
-                    Wybrany plik: {selectedFile.name}
+                    {t.selectedFile}: {selectedFile.name}
                   </p>
                 )}
               </div>
                 {(processing || analyzeDocumentMutation.isPending) && (
                 <div className="flex items-center justify-center gap-2 text-slate-600">
                   <Loader2 className="size-5 animate-spin" />
-                  <span>Przetwarzanie dokumentu...</span>
+                  <span>{t.processingDocument}</span>
                 </div>
               )}
               {analyzeDocumentMutation.isError && (
                 <div className="text-sm text-red-600 mt-2">
-                  Błąd podczas przetwarzania dokumentu. Spróbuj ponownie.
+                  {t.errorProcessingDocument}
                 </div>
               )}
             </TabsContent>
 
             <TabsContent value="manual" className="space-y-4 mt-4">
               <div className="space-y-4">
-                <Label>Wprowadź dane z delivery note</Label>
+                <Label>{t.enterDeliveryNoteData}</Label>
                 <div className="border rounded-lg">
                   <DeliveryNoteMaterialsTable
                     mode="manual"
@@ -341,7 +341,7 @@ export function DeliveryNoteImport({
                   className="w-full"
                 >
                   <Plus className="size-4 mr-2" />
-                  Dodaj kolejny materiał
+                  {t.addAnotherMaterial}
                 </Button>
               </div>
               <Button
@@ -355,18 +355,18 @@ export function DeliveryNoteImport({
                 {createStorageItemsBulkMutation.isPending ? (
                   <>
                     <Loader2 className="size-4 mr-2 animate-spin" />
-                    Zapisywanie...
+                    {t.saving}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="size-4 mr-2" />
-                    Zapisz materiały ({manualMaterials.filter(row => row.name.trim() && row.quantity.trim() && row.unit.trim() && row.category.trim()).length})
+                    {t.saveMaterials} ({manualMaterials.filter(row => row.name.trim() && row.quantity.trim() && row.unit.trim() && row.category.trim()).length})
                   </>
                 )}
               </Button>
               {createStorageItemsBulkMutation.isError && (
                 <div className="text-sm text-red-600 mt-2">
-                  Błąd podczas zapisywania materiałów. Spróbuj ponownie.
+                  {t.errorSavingMaterials}
                 </div>
               )}
             </TabsContent>
@@ -375,13 +375,13 @@ export function DeliveryNoteImport({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium">Rozpoznane materiały ({parsedMaterials.length})</h3>
+                <h3 className="font-medium">{t.reviewMaterials} ({parsedMaterials.length})</h3>
                 <p className="text-sm text-slate-600">
-                  Sprawdź i edytuj dane przed dodaniem do magazynu
+                  {t.reviewMaterialsDesc}
                 </p>
               </div>
               <Button variant="outline" size="sm" onClick={handleReset}>
-                Rozpocznij od nowa
+                {t.startOver}
               </Button>
             </div>
 
@@ -413,19 +413,19 @@ export function DeliveryNoteImport({
                 {createStorageItemsBulkMutation.isPending ? (
                   <>
                     <Loader2 className="size-4 mr-2 animate-spin" />
-                    Dodawanie...
+                    {t.adding}
                   </>
                 ) : (
                   <>
                     <Plus className="size-4 mr-2" />
-                    Dodaj {parsedMaterials.filter(pm => pm.selected_material_id).length} materiał(ów) do magazynu
+                    {t.addMaterialsToWarehouse} {parsedMaterials.filter(pm => pm.selected_material_id).length} {t.material}(ów) {t.addToWarehouse}
                   </>
                 )}
               </Button>
             </div>
             {createStorageItemsBulkMutation.isError && (
               <div className="text-sm text-red-600 mt-2">
-                Błąd podczas dodawania materiałów do magazynu. Spróbuj ponownie.
+                {t.errorAddingMaterials}
               </div>
             )}
           </div>

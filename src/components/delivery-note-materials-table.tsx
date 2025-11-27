@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { Combobox } from './ui/combobox';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { CheckCircle2, Pencil, Trash2, Info } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ParsedMaterial {
   id: string;
@@ -81,15 +82,17 @@ export function DeliveryNoteMaterialsTable({
   materials,
   categories = [],
 }: DeliveryNoteMaterialsTableProps) {
+  const { t } = useLanguage();
+
   if (mode === 'parsed') {
     return (
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[300px]">Materiał z dokumentu</TableHead>
-            <TableHead className="w-[300px]">Materiał z bazy danych</TableHead>
-            <TableHead className="w-[120px]">Ilość</TableHead>
-            <TableHead className="w-[120px]">Jednostka</TableHead>
+            <TableHead className="w-[300px]">{t.materialFromDocument}</TableHead>
+            <TableHead className="w-[300px]">{t.materialFromDatabase}</TableHead>
+            <TableHead className="w-[120px]">{t.quantity}</TableHead>
+            <TableHead className="w-[120px]">{t.unit}</TableHead>
             <TableHead className="w-[100px] text-right"></TableHead>
           </TableRow>
         </TableHeader>
@@ -119,19 +122,19 @@ export function DeliveryNoteMaterialsTable({
                           onEditFormChange?.('unit', '');
                         }
                       }}
-                      placeholder="Wybierz materiał"
+                      placeholder={t.selectMaterial}
                       options={
                         materials.length === 0
-                          ? [{ value: 'brak-materialu', label: 'Brak materiałów' }]
+                          ? [{ value: 'brak-materialu', label: t.noMaterials }]
                           : [
-                              { value: 'brak-materialu', label: 'Brak dopasowania' },
+                              { value: 'brak-materialu', label: t.noMatch },
                               ...materials.map(mat => ({
                                 value: mat.material_id,
                                 label: mat.name
                               }))
                             ]
                       }
-                      emptyText="Brak wyników"
+                      emptyText={t.noResults}
                     />
                   </TableCell>
                   <TableCell>
@@ -159,7 +162,7 @@ export function DeliveryNoteMaterialsTable({
                         variant="ghost"
                         onClick={onCancelEdit}
                       >
-                        Anuluj
+                        {t.cancel}
                       </Button>
                     </div>
                   </TableCell>
@@ -176,10 +179,10 @@ export function DeliveryNoteMaterialsTable({
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
                             <div className="space-y-1">
-                              <p className="font-semibold">Sugerowane materiały:</p>
+                              <p className="font-semibold">{t.suggestedMaterials}:</p>
                               {material.suggested_materials.map((suggested, idx) => (
                                 <div key={idx} className="text-sm">
-                                  • {suggested.name} ({suggested.similarity_score.toFixed(0)}% podobieństwa)
+                                  • {suggested.name} ({suggested.similarity_score.toFixed(0)}% {t.similarityScore})
                                 </div>
                               ))}
                             </div>
@@ -192,22 +195,22 @@ export function DeliveryNoteMaterialsTable({
                     <Combobox
                       value={material.selected_material_id || 'brak-materialu'}
                       onValueChange={(value) => onMaterialSelect?.(value, material.id)}
-                      placeholder="Wybierz materiał"
+                      placeholder={t.selectMaterial}
                       options={
                         materials.length === 0
-                          ? [{ value: 'brak-materialu', label: 'Brak materiałów' }]
+                          ? [{ value: 'brak-materialu', label: t.noMaterials }]
                           : [
-                              { value: 'brak-materialu', label: 'Brak dopasowania' },
+                              { value: 'brak-materialu', label: t.noMatch },
                               ...materials.map(mat => ({
                                 value: mat.material_id,
                                 label: mat.name
                               }))
                             ]
                       }
-                      emptyText="Brak wyników"
+                      emptyText={t.noResults}
                     />
                   </TableCell>
-                  <TableCell>{material.quantity.toLocaleString('pl-PL')}</TableCell>
+                  <TableCell>{material.quantity.toLocaleString(t.locale)}</TableCell>
                   <TableCell>{material.unit}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-1 justify-end">
@@ -241,11 +244,11 @@ export function DeliveryNoteMaterialsTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[300px]">Nazwa materiału</TableHead>
-          <TableHead className="w-[120px]">Ilość</TableHead>
-          <TableHead className="w-[120px]">Jednostka</TableHead>
-          <TableHead className="w-[200px]">Kategoria</TableHead>
-          <TableHead className="w-[150px] text-right">Akcje</TableHead>
+          <TableHead className="w-[300px]">{t.materialName}</TableHead>
+          <TableHead className="w-[120px]">{t.quantity}</TableHead>
+          <TableHead className="w-[120px]">{t.unit}</TableHead>
+          <TableHead className="w-[200px]">{t.category}</TableHead>
+          <TableHead className="w-[150px] text-right">{t.actions}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -265,12 +268,12 @@ export function DeliveryNoteMaterialsTable({
                     onManualMaterialChange?.(index, 'category', '');
                   }
                 }}
-                placeholder="Wybierz materiał"
+                placeholder={t.selectMaterial}
                 options={materials.map(material => ({
                   value: material.name,
                   label: material.name
                 }))}
-                emptyText="Brak materiałów"
+                emptyText={t.noMaterials}
               />
             </TableCell>
             <TableCell>
@@ -286,7 +289,7 @@ export function DeliveryNoteMaterialsTable({
               <Input
                 value={row.unit}
                 disabled
-                placeholder="Auto"
+                placeholder={t.auto}
                 className="bg-slate-50"
               />
             </TableCell>
@@ -294,7 +297,7 @@ export function DeliveryNoteMaterialsTable({
               <Input
                 value={row.category ? categories.find(c => c.category_id === row.category)?.name || '' : ''}
                 disabled
-                placeholder="Auto"
+                placeholder={t.auto}
                 className="bg-slate-50"
               />
             </TableCell>
