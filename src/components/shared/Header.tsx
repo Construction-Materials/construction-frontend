@@ -28,6 +28,11 @@ export function Header() {
             <Image src={logo} alt="ElectraM&E" height={40} width={120} className="h-10 w-auto" />
           </button>
           <div className="flex items-center gap-3">
+            {pathname === '/' && (
+              <Button onClick={handleGoToMaterials} variant="outline">
+                {t.manageMaterials}
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -38,11 +43,7 @@ export function Header() {
               <span className="hidden sm:inline">{language === 'pl' ? 'Polski' : 'English'}</span>
               <span className="sm:hidden">{language === 'pl' ? 'PL' : 'EN'}</span>
             </Button>
-            {pathname === '/' && (
-              <Button onClick={handleGoToMaterials} variant="outline">
-                {t.manageMaterials}
-              </Button>
-            )}
+
           </div>
         </div>
       </div>

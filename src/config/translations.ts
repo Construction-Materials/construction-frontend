@@ -101,6 +101,7 @@ export const translations = {
     selectUnits: 'Wybierz jednostki',
     noCategories: 'Brak kategorii',
     noMaterialsMatching: 'Brak materiałów spełniających kryteria wyszukiwania',
+    editCategories: 'Edytuj kategorie',
     
     // Add Materials Form
     addNewMaterials: 'Dodaj nowe materiały',
@@ -252,6 +253,7 @@ export const translations = {
     selectUnits: 'Select units',
     noCategories: 'No categories',
     noMaterialsMatching: 'No materials matching search criteria',
+    editCategories: 'Edit Categories',
     
     // Add Materials Form
     addNewMaterials: 'Add New Materials',

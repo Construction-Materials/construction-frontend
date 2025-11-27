@@ -186,10 +186,8 @@ export function MaterialsManager({
   };
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: materialKeys.all });
+    queryClient.refetchQueries({ queryKey: materialKeys.all });
   };
-
-  const hasActiveFilters = searchQuery || selectedCategories.length > 0 || selectedUnits.length > 0 || sortOrder !== null;
 
   const { t } = useLanguage();
 
@@ -207,7 +205,7 @@ export function MaterialsManager({
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setCategoriesDialogOpen(true)}>
                 <Tag className="size-4 mr-2" />
-                Edit Categories
+                {t.editCategories}
               </Button>
               <Button onClick={onGoToAddMaterial}>
                 <Plus className="size-4 mr-2" />
@@ -261,115 +259,120 @@ export function MaterialsManager({
                         className="pl-10 border-2"
                       />
                     </div>
-                  </div>
-                  
+                </div>
+                <div className="flex w-full justify-between">
+                  <div>
                   {/* Filtrowanie po kategoriach */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="gap-2">
-                        <Filter className="size-4" />
-                        {t.categories}
-                        {selectedCategories.length > 0 && (
-                          <Badge variant="secondary" className="ml-1">
-                            {selectedCategories.length}
-                          </Badge>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64" align="start">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold">{t.selectCategories}</Label>
-                        <div className="max-h-60 overflow-y-auto space-y-2">
-                          {categories.length === 0 ? (
-                            <p className="text-sm text-slate-500">{t.noCategories}</p>
-                          ) : (
-                            categories.map(category => (
-                              <div key={category.category_id} className="flex items-center space-x-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="gap-2">
+                          <Filter className="size-4" />
+                          {t.categories}
+                          {selectedCategories.length > 0 && (
+                            <Badge variant="secondary" className="ml-1">
+                              {selectedCategories.length}
+                            </Badge>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64" align="start">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold">{t.selectCategories}</Label>
+                          <div className="max-h-60 overflow-y-auto space-y-2">
+                            {categories.length === 0 ? (
+                              <p className="text-sm text-slate-500">{t.noCategories}</p>
+                            ) : (
+                              categories.map(category => (
+                                <div key={category.category_id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`category-${category.category_id}`}
+                                    checked={selectedCategories.includes(category.category_id)}
+                                    onCheckedChange={() => handleCategoryToggle(category.category_id)}
+                                  />
+                                  <Label
+                                    htmlFor={`category-${category.category_id}`}
+                                    className="text-sm font-normal cursor-pointer flex-1"
+                                  >
+                                    {category.name}
+                                  </Label>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* Filtrowanie po jednostkach */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="gap-2">
+                          <Filter className="size-4" />
+                          {t.units}
+                          {selectedUnits.length > 0 && (
+                            <Badge variant="secondary" className="ml-1">
+                              {selectedUnits.length}
+                            </Badge>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64" align="start">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold">{t.selectUnits}</Label>
+                          <div className="max-h-60 overflow-y-auto space-y-2">
+                            {appConfig.materialUnits.map(unit => (
+                              <div key={unit.value} className="flex items-center space-x-2">
                                 <Checkbox
-                                  id={`category-${category.category_id}`}
-                                  checked={selectedCategories.includes(category.category_id)}
-                                  onCheckedChange={() => handleCategoryToggle(category.category_id)}
+                                  id={`unit-${unit.value}`}
+                                  checked={selectedUnits.includes(unit.value)}
+                                  onCheckedChange={() => handleUnitToggle(unit.value)}
                                 />
                                 <Label
-                                  htmlFor={`category-${category.category_id}`}
+                                  htmlFor={`unit-${unit.value}`}
                                   className="text-sm font-normal cursor-pointer flex-1"
                                 >
-                                  {category.name}
+                                  {unit.label}
                                 </Label>
                               </div>
-                            ))
-                          )}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                      </PopoverContent>
+                    </Popover>
 
-                  {/* Filtrowanie po jednostkach */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="gap-2">
-                        <Filter className="size-4" />
-                        {t.units}
-                        {selectedUnits.length > 0 && (
-                          <Badge variant="secondary" className="ml-1">
-                            {selectedUnits.length}
-                          </Badge>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64" align="start">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold">{t.selectUnits}</Label>
-                        <div className="max-h-60 overflow-y-auto space-y-2">
-                          {appConfig.materialUnits.map(unit => (
-                            <div key={unit.value} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`unit-${unit.value}`}
-                                checked={selectedUnits.includes(unit.value)}
-                                onCheckedChange={() => handleUnitToggle(unit.value)}
-                              />
-                              <Label
-                                htmlFor={`unit-${unit.value}`}
-                                className="text-sm font-normal cursor-pointer flex-1"
-                              >
-                                {unit.label}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSortToggle}
-                    className="gap-2"
-                  >
-                    {sortOrder === 'asc' && <ArrowUp className="size-4" />}
-                    {sortOrder === 'desc' && <ArrowDown className="size-4" />}
-                    {sortOrder === null && <ArrowUp className="size-4 opacity-50" />}
-                    {t.sortByName}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRefresh}
-                    className="gap-2"
-                  >
-                    <RefreshCw className="size-4" />
-                    {t.refresh}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="gap-2"
-                  >
-                    <X className="size-4" />
-                    {t.resetFilters}
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSortToggle}
+                      className="gap-2"
+                    >
+                      {sortOrder === 'asc' && <ArrowUp className="size-4" />}
+                      {sortOrder === 'desc' && <ArrowDown className="size-4" />}
+                      {sortOrder === null && <ArrowUp className="size-4 opacity-50" />}
+                      {t.sortByName}
+                    </Button>
+                  </div>
+                  <div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRefresh}
+                      className="gap-2"
+                    >
+                      <RefreshCw className="size-4" />
+                      {t.refresh}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="gap-2"
+                    >
+                      <X className="size-4" />
+                      {t.resetFilters}
+                    </Button>
+                  </div>
+                </div>
                 </div>
               </div>
 
