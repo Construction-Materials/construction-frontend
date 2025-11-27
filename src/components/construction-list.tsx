@@ -14,6 +14,11 @@ import { appConfig } from '../config/app-config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { StatusBadge } from './shared/StatusBadge';
 import { EmptyState } from './shared/EmptyState';
+import { SearchInput } from './shared/SearchInput';
+import { FilterPopover, FilterOption } from './shared/FilterPopover';
+import { SortButton } from './shared/SortButton';
+import { FilterActions } from './shared/FilterActions';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ConstructionListProps {
   constructions: Construction[];
@@ -39,6 +44,12 @@ export function ConstructionList({
     description: ''
   });
 
+  // Filtrowanie i sortowanie
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
+  const queryClient = useQueryClient();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -57,6 +68,69 @@ export function ConstructionList({
   };
 
   const { t } = useLanguage();
+
+  // Filtrowanie i sortowanie konstrukcji
+  const filteredAndSortedConstructions = constructions
+    .filter(construction => {
+      // Filtrowanie po wyszukiwaniu (nazwa lub adres)
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = construction.name.toLowerCase().includes(query);
+        const matchesAddress = construction.address.toLowerCase().includes(query);
+        if (!matchesName && !matchesAddress) {
+          return false;
+        }
+      }
+      // Filtrowanie po statusach
+      if (selectedStatuses.length > 0 && !selectedStatuses.includes(construction.status)) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortOrder === null) return 0;
+      if (sortOrder === 'asc') {
+        return a.name.localeCompare(b.name);
+      } else {
+        return b.name.localeCompare(a.name);
+      }
+    });
+
+  const handleStatusToggle = (status: string) => {
+    setSelectedStatuses(prev =>
+      prev.includes(status)
+        ? prev.filter(s => s !== status)
+        : [...prev, status]
+    );
+  };
+
+  const handleSortToggle = () => {
+    if (sortOrder === null) {
+      setSortOrder('asc');
+    } else if (sortOrder === 'asc') {
+      setSortOrder('desc');
+    } else {
+      setSortOrder(null);
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedStatuses([]);
+    setSortOrder(null);
+  };
+
+  const handleRefresh = () => {
+    // Można dodać refetch queries jeśli są dostępne
+    window.location.reload();
+  };
+
+  // Opcje statusów dla filtra
+  const statusOptions: FilterOption[] = [
+    { value: 'planned', label: t.statusPlanned },
+    { value: 'active', label: t.statusActive },
+    { value: 'completed', label: t.statusCompleted }
+  ];
 
   return (
     <div>
@@ -167,28 +241,70 @@ export function ConstructionList({
         </div>
       )}
 
-      {!isLoading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {constructions.map((construction) => (
+      {!isLoading && !error && constructions.length > 0 && (
+        <>
+          <div className="mb-6">
+            <div className="flex gap-4 items-end flex-wrap justify-between">
+              <div className="flex gap-2 flex-wrap items-end">
+                <SearchInput
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder={t.searchPlaceholder}
+                />
+                <FilterPopover
+                  label={t.status}
+                  items={statusOptions}
+                  selectedValues={selectedStatuses}
+                  onToggle={handleStatusToggle}
+                  idPrefix="status"
+                  translations={{
+                    selectLabel: t.selectStatus || 'Wybierz status',
+                    emptyMessage: t.noStatuses || 'Brak statusów',
+                  }}
+                />
+                <SortButton
+                  sortOrder={sortOrder}
+                  onToggle={handleSortToggle}
+                  label={t.sortByName}
+                />
+              </div>
+              <FilterActions
+                onRefresh={handleRefresh}
+                onReset={clearFilters}
+                translations={{
+                  refresh: t.refresh,
+                  resetFilters: t.resetFilters,
+                }}
+              />
+            </div>
+          </div>
+
+          {filteredAndSortedConstructions.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-slate-600">{t.noConstructionsMatching || 'Brak konstrukcji spełniających kryteria wyszukiwania'}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredAndSortedConstructions.map((construction) => (
           <Card
             key={construction.construction_id}
-            className="hover:shadow-md transition-shadow cursor-pointer"
+            className="hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full"
             onClick={() => onSelectConstruction(construction.construction_id)}
           >
-            <CardHeader>
+            <CardHeader className="flex-shrink-0">
               <div className="flex items-start justify-between gap-2">
                 <Building2 className="size-5 text-slate-500 mt-1 flex-shrink-0" />
                 <StatusBadge status={construction.status} type="construction" />
               </div>
               <CardTitle className="mt-2">{construction.name}</CardTitle>
               {construction.description && (
-                <CardDescription>{construction.description}</CardDescription>
+                <CardDescription className="line-clamp-2">{construction.description}</CardDescription>
               )}
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 flex-grow flex flex-col justify-end">
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <MapPin className="size-4 flex-shrink-0" />
-                <span>{construction.address}</span>
+                <span className="truncate">{construction.address}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Calendar className="size-4 flex-shrink-0" />
@@ -196,8 +312,10 @@ export function ConstructionList({
               </div>
             </CardContent>
           </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {!isLoading && !error && constructions.length === 0 && (
