@@ -25,7 +25,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <button onClick={() => router.push('/')} className="cursor-pointer">
-            <Image src={logo} alt="ElectraM&E" height={40} width={120} className="h-10 w-auto" />
+            <Image src={logo} alt="ElectraM&E" height={60} width={180} className="h-14 w-auto" />
           </button>
           <div className="flex items-center gap-3">
             {pathname === '/' && (
