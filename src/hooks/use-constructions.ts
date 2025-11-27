@@ -9,6 +9,8 @@ import {
   type ConstructionsQueryParams,
   type AnalyzeDocumentResponse,
 } from '@/lib/api/constructions';
+import { createStorage } from '@/lib/api/storages';
+import { storageKeys } from './use-storages';
 import { Construction } from '@/types';
 
 // Query keys
@@ -44,7 +46,21 @@ export function useCreateConstruction() {
   return useMutation({
     mutationFn: (data: Omit<Construction, 'construction_id' | 'created_at'>) =>
       createConstruction(data),
-    onSuccess: () => {
+    onSuccess: async (construction) => {
+      // Automatycznie utwórz storage o nazwie "unknown" dla nowej konstrukcji
+      try {
+        await createStorage({
+          construction_id: construction.construction_id,
+          name: 'unknown',
+        });
+        // Invalidate queries dla storages
+        queryClient.invalidateQueries({ 
+          queryKey: storageKeys.byConstruction(construction.construction_id) 
+        });
+      } catch (error) {
+        console.error('Failed to create default storage:', error);
+        // Nie rzucamy błędu, aby nie przerwać procesu tworzenia konstrukcji
+      }
       // Invalidate queries, aby odświeżyć listę
       queryClient.invalidateQueries({ queryKey: constructionKeys.lists() });
     },
