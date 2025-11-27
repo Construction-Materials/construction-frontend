@@ -75,7 +75,9 @@ export function MaterialsInventory({
                       <div>
                         <div className="font-medium">{material.name}</div>
                         {material.description && (
-                          <div className="text-sm text-slate-500">{material.description}</div>
+                          <div className="text-sm text-slate-500 truncate max-w-md">
+                            {material.description}
+                          </div>
                         )}
                       </div>
                     </TableCell>

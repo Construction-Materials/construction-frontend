@@ -90,6 +90,17 @@ export const translations = {
     deleteConfirm: 'Czy na pewno chcesz usunąć?',
     deleteConfirmDesc: 'Ta akcja jest nieodwracalna. Materiał zostanie usunięty z systemu.',
     delete: 'Usuń',
+    search: 'Wyszukaj',
+    searchPlaceholder: 'Szukaj po nazwie...',
+    sortByName: 'Sortuj po nazwie',
+    refresh: 'Odśwież',
+    resetFilters: 'Resetuj filtry',
+    categories: 'Kategorie',
+    units: 'Jednostki',
+    selectCategories: 'Wybierz kategorie',
+    selectUnits: 'Wybierz jednostki',
+    noCategories: 'Brak kategorii',
+    noMaterialsMatching: 'Brak materiałów spełniających kryteria wyszukiwania',
     
     // Add Materials Form
     addNewMaterials: 'Dodaj nowe materiały',
@@ -97,11 +108,12 @@ export const translations = {
     material: 'Materiał',
     addAnotherMaterial: 'Dodaj kolejny materiał',
     saveAllMaterials: 'Zapisz wszystkie materiały',
+    saving: 'Zapisywanie...',
     required: '*',
     optional: 'Opcjonalne',
     selectUnit: 'Wybierz jednostkę',
     selectCategory: 'Wybierz kategorię',
-    descriptionPlaceholder: 'Dodatkowe informacje o materiale...',
+    materialDescriptionPlaceholder: 'Dodatkowe informacje o materiale...',
     
     // Delivery Note Import
     deliveryNoteImport: 'Import noty dostawy',
@@ -113,10 +125,8 @@ export const translations = {
     processWithAI: 'Przetwórz za pomocą AI',
     reviewMaterials: 'Przejrzyj i edytuj materiały',
     reviewMaterialsDesc: 'Sprawdź i zmodyfikuj materiały przed dodaniem do magazynu',
-    addToWarehouse: 'Dodaj do magazynu',
     
     // Add Material Dialog
-    addMaterialToWarehouse: 'Dodaj materiał do magazynu',
     selectMaterial: 'Wybierz materiał',
     searchMaterials: 'Szukaj materiałów...',
     quantityToAdd: 'Ilość do dodania',
@@ -231,6 +241,17 @@ export const translations = {
     deleteConfirm: 'Are you sure you want to delete?',
     deleteConfirmDesc: 'This action is irreversible. The material will be deleted from the system.',
     delete: 'Delete',
+    search: 'Search',
+    searchPlaceholder: 'Search by name...',
+    sortByName: 'Sort by name',
+    refresh: 'Refresh',
+    resetFilters: 'Reset filters',
+    categories: 'Categories',
+    units: 'Units',
+    selectCategories: 'Select categories',
+    selectUnits: 'Select units',
+    noCategories: 'No categories',
+    noMaterialsMatching: 'No materials matching search criteria',
     
     // Add Materials Form
     addNewMaterials: 'Add New Materials',
@@ -238,11 +259,12 @@ export const translations = {
     material: 'Material',
     addAnotherMaterial: 'Add Another Material',
     saveAllMaterials: 'Save All Materials',
+    saving: 'Saving...',
     required: '*',
     optional: 'Optional',
     selectUnit: 'Select unit',
     selectCategory: 'Select category',
-    descriptionPlaceholder: 'Additional information about the material...',
+    materialDescriptionPlaceholder: 'Additional information about the material...',
     
     // Delivery Note Import
     deliveryNoteImport: 'Delivery Note Import',
@@ -254,10 +276,8 @@ export const translations = {
     processWithAI: 'Process with AI',
     reviewMaterials: 'Review and Edit Materials',
     reviewMaterialsDesc: 'Review and modify materials before adding to warehouse',
-    addToWarehouse: 'Add to Warehouse',
     
     // Add Material Dialog
-    addMaterialToWarehouse: 'Add Material to Warehouse',
     selectMaterial: 'Select Material',
     searchMaterials: 'Search materials...',
     quantityToAdd: 'Quantity to Add',

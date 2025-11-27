@@ -21,9 +21,10 @@ interface MaterialFormData {
 interface AddMaterialsFormProps {
   onAddMaterials: (materials: MaterialFormData[]) => void;
   categories: Array<{ category_id: string; name: string }>;
+  isLoading?: boolean;
 }
 
-export function AddMaterialsForm({ onAddMaterials, categories }: AddMaterialsFormProps) {
+export function AddMaterialsForm({ onAddMaterials, categories, isLoading = false }: AddMaterialsFormProps) {
   const [materials, setMaterials] = useState<MaterialFormData[]>([
     { name: '', unit: '', category: '', description: '' }
   ]);
@@ -160,7 +161,7 @@ export function AddMaterialsForm({ onAddMaterials, categories }: AddMaterialsFor
                         id={`description-${index}`}
                         value={material.description}
                         onChange={(e) => handleChange(index, 'description', e.target.value)}
-                        placeholder={t.descriptionPlaceholder}
+                        placeholder={t.materialDescriptionPlaceholder}
                         rows={3}
                       />
                     </div>
@@ -182,8 +183,8 @@ export function AddMaterialsForm({ onAddMaterials, categories }: AddMaterialsFor
             </div>
 
             <div className={`flex gap-3 ${appConfig.spacing.formButtons} border-t`}>
-              <Button type="submit" size="lg" className="flex-1">
-                {t.saveAllMaterials} ({materials.filter(m => m.name && m.unit && m.category).length})
+              <Button type="submit" size="lg" className="flex-1" disabled={isLoading}>
+                {isLoading ? t.saving : `${t.saveAllMaterials} (${materials.filter(m => m.name && m.unit && m.category).length})`}
               </Button>
             </div>
           </form>

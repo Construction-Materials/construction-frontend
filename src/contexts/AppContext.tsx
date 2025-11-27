@@ -26,7 +26,7 @@ const initialMaterials: Material[] = [
     material_id: '1',
     category_id: 'cat-1',
     name: 'Cement',
-    unit: 'kg',
+    unit: 'kilograms',
     description: 'Cement portlandzki CEM I 42,5R',
     created_at: new Date().toISOString()
   },
@@ -34,7 +34,7 @@ const initialMaterials: Material[] = [
     material_id: '2',
     category_id: 'cat-2',
     name: 'Cegła ceramiczna',
-    unit: 'szt',
+    unit: 'pieces',
     description: 'Cegła pełna klasy 15',
     created_at: new Date().toISOString()
   },
@@ -42,7 +42,7 @@ const initialMaterials: Material[] = [
     material_id: '3',
     category_id: 'cat-3',
     name: 'Drewno konstrukcyjne',
-    unit: 'm³',
+    unit: 'cubic_meters',
     description: 'Drewno konstrukcyjne C24',
     created_at: new Date().toISOString()
   }

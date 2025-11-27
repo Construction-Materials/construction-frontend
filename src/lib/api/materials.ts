@@ -54,6 +54,51 @@ export async function getMaterialById(id: string): Promise<Material> {
   return data;
 }
 
+export async function createMaterial(
+  data: { name: string; unit: string; category_id: string; description?: string }
+): Promise<Material> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/materials/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create material: ${response.statusText}`);
+  }
+
+  const result = await response.json() as Material;
+  return result;
+}
+
+export async function createMaterialsBulk(
+  materials: Array<{ name: string; unit: string; category_id: string; description?: string }>
+): Promise<Material[]> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/materials/bulk`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(materials),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Failed to create materials: ${response.statusText}`;
+    try {
+      const errorData = await response.json() as { message?: string; error?: string };
+      errorMessage = errorData.message || errorData.error || errorMessage;
+    } catch {
+      // Jeśli nie można sparsować JSON, użyj domyślnego komunikatu
+    }
+    throw new Error(errorMessage);
+  }
+
+  const result = await response.json() as Material[];
+  return result;
+}
+
 export async function updateMaterial(
   id: string,
   data: Partial<Material>
