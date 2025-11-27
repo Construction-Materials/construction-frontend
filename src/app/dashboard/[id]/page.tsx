@@ -90,7 +90,7 @@ export default function DashboardPage() {
             onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash2 className="size-4 mr-2" />
-            Usuń konstrukcję
+            Usuń Budowę
           </Button>
         </div>
         <ConstructionDashboard

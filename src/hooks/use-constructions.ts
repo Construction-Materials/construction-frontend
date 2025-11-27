@@ -5,7 +5,9 @@ import {
   createConstruction,
   updateConstruction,
   deleteConstruction,
+  analyzeDocument,
   type ConstructionsQueryParams,
+  type AnalyzeDocumentResponse,
 } from '@/lib/api/constructions';
 import { Construction } from '@/types';
 
@@ -74,6 +76,14 @@ export function useDeleteConstruction() {
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: constructionKeys.lists() });
     },
+  });
+}
+
+// Hook do analizy dokumentu
+export function useAnalyzeDocument() {
+  return useMutation({
+    mutationFn: ({ constructionId, file }: { constructionId: string; file: File }) =>
+      analyzeDocument(constructionId, file),
   });
 }
 

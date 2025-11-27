@@ -10,10 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
-import { Upload, FileText, Plus, Pencil, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Upload, FileText, Plus, Pencil, Trash2, CheckCircle2, Loader2, Info } from 'lucide-react';
 import { appConfig } from '../config/app-config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
+import { useAnalyzeDocument } from '@/hooks/use-constructions';
 
 interface DeliveryNoteImportProps {
   construction: Construction;
@@ -27,8 +29,17 @@ interface ParsedMaterial {
   name: string;
   quantity: number;
   unit: string;
-  category: string;
   description?: string;
+  material_id?: string | null;
+  material_exists?: boolean;
+  selected_material_id?: string | null;
+  suggested_materials?: Array<{
+    material_id: string;
+    name: string;
+    unit: string;
+    description: string;
+    similarity_score: number;
+  }>;
 }
 
 interface ManualMaterialRow {
@@ -52,53 +63,16 @@ export function DeliveryNoteImport({
     name: '',
     quantity: '',
     unit: '',
-    category: ''
+    selected_material_id: ''
   });
   const [manualMaterials, setManualMaterials] = useState<ManualMaterialRow[]>([
     { name: '', quantity: '', unit: '', category: '' }
   ]);
 
   const { t } = useLanguage();
-
-  // Mock LLM function to simulate parsing delivery note
-  const mockLLMParse = async (text: string): Promise<ParsedMaterial[]> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Mock parsing logic - in real app this would be LLM API call
-    const lines = text.split('\n').filter(line => line.trim());
-    const parsed: ParsedMaterial[] = [];
-
-    // Simple pattern matching for demo purposes
-    lines.forEach((line, index) => {
-      const quantityMatch = line.match(/(\d+[,.]?\d*)\s*(szt\.|kg|t|m²|m³|m|l|opak\.|worek|paleta)/i);
-      if (quantityMatch) {
-        const quantity = parseFloat(quantityMatch[1].replace(',', '.'));
-        const unit = quantityMatch[2];
-        const name = line.replace(quantityMatch[0], '').trim().split(/\s{2,}/)[0] || `Materiał ${index + 1}`;
-        
-        parsed.push({
-          id: `parsed-${Date.now()}-${index}`,
-          name: name,
-          quantity: quantity,
-          unit: unit,
-          category: 'Materiały podstawowe',
-          description: ''
-        });
-      }
-    });
-
-    return parsed.length > 0 ? parsed : [
-      {
-        id: `parsed-${Date.now()}-1`,
-        name: 'Przykładowy materiał 1',
-        quantity: 100,
-        unit: 'szt.',
-        category: 'Materiały podstawowe',
-        description: ''
-      }
-    ];
-  };
+  const analyzeDocumentMutation = useAnalyzeDocument();
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.categories || [];
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -108,20 +82,42 @@ export function DeliveryNoteImport({
     setProcessing(true);
 
     try {
-      // In real app, this would extract text from PDF/image using OCR
-      // For demo, we'll use mock text
-      const mockText = `
-        Cement portlandzki 500 kg
-        Cegła ceramiczna 2000 szt.
-        Piasek 5 t
-        Styropian 50 m²
-        Rury PCV 100 m
-      `;
-      
-      const parsed = await mockLLMParse(mockText);
+      const response = await analyzeDocumentMutation.mutateAsync({
+        constructionId: construction.construction_id,
+        file: file,
+      });
+
+      // Mapowanie odpowiedzi z API na format ParsedMaterial
+      const parsed: ParsedMaterial[] = response.extracted_data.materials.map((material, index) => {
+        // Jeśli materiał istnieje, użyj jego material_id
+        // W przeciwnym razie wybierz materiał z najwyższym similarity_score
+        let selectedMaterialId: string | null = null;
+        
+        if (material.material_exists && material.material_id) {
+          selectedMaterialId = material.material_id;
+        } else if (material.suggested_materials && material.suggested_materials.length > 0) {
+          // Sortuj po similarity_score i wybierz najwyższy
+          const sorted = [...material.suggested_materials].sort((a, b) => b.similarity_score - a.similarity_score);
+          selectedMaterialId = sorted[0].material_id;
+        }
+
+        return {
+          id: `parsed-${Date.now()}-${index}`,
+          name: material.name,
+          quantity: material.quantity,
+          unit: material.unit,
+          description: '',
+          material_id: material.material_id,
+          material_exists: material.material_exists,
+          selected_material_id: selectedMaterialId,
+          suggested_materials: material.suggested_materials,
+        };
+      });
+
       setParsedMaterials(parsed);
     } catch (error) {
       console.error('Error processing file:', error);
+      // TODO: Dodać toast/alert z błędem
     } finally {
       setProcessing(false);
     }
@@ -153,23 +149,41 @@ export function DeliveryNoteImport({
       name: material.name,
       quantity: material.quantity.toString(),
       unit: material.unit,
-      category: material.category
+      selected_material_id: material.selected_material_id || ''
     });
   };
 
   const handleSaveEdit = () => {
-    setParsedMaterials(parsedMaterials.map(m =>
-      m.id === editingId
-        ? {
-            ...m,
-            name: editForm.name,
-            quantity: parseFloat(editForm.quantity),
-            unit: editForm.unit,
-            category: editForm.category
-          }
-        : m
-    ));
+    setParsedMaterials(parsedMaterials.map(m => {
+      if (m.id === editingId) {
+        const selectedMaterial = materials.find(mat => mat.material_id === editForm.selected_material_id);
+        return {
+          ...m,
+          name: editForm.name,
+          quantity: parseFloat(editForm.quantity),
+          unit: selectedMaterial?.unit || m.unit,
+          selected_material_id: editForm.selected_material_id || null
+        };
+      }
+      return m;
+    }));
     setEditingId(null);
+  };
+
+  const handleMaterialSelect = (materialId: string, parsedMaterialId: string) => {
+    setParsedMaterials(parsedMaterials.map(m => {
+      if (m.id === parsedMaterialId) {
+        // Jeśli wybrano "brak-materialu", ustaw na null
+        const actualMaterialId = materialId === 'brak-materialu' ? null : materialId;
+        const selectedMaterial = actualMaterialId ? materials.find(mat => mat.material_id === actualMaterialId) : null;
+        return {
+          ...m,
+          selected_material_id: actualMaterialId,
+          unit: selectedMaterial?.unit || m.unit
+        };
+      }
+      return m;
+    }));
   };
 
   const handleDelete = (id: string) => {
@@ -183,29 +197,33 @@ export function DeliveryNoteImport({
     // This function needs to be refactored to use API
 
     parsedMaterials.forEach(pm => {
-      // Check if material already exists in global materials
-      let existingMaterial = materials.find(m => 
-        m.name.toLowerCase() === pm.name.toLowerCase()
-      );
+      // Use selected material if available, otherwise check if material exists by name
+      let materialId: string | null = pm.selected_material_id || null;
 
-      let materialId: string;
+      if (!materialId) {
+        // Check if material already exists in global materials by name
+        const existingMaterial = materials.find(m => 
+          m.name.toLowerCase() === pm.name.toLowerCase()
+        );
 
-      if (!existingMaterial) {
-        // Create new material
-        materialId = `material-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        newMaterials.push({
-          material_id: materialId,
-          category_id: pm.category, // W przyszłości może być mapowanie na category_id
-          name: pm.name,
-          unit: pm.unit,
-          description: pm.description || '',
-          created_at: new Date().toISOString()
-        });
-      } else {
-        materialId = existingMaterial.material_id;
+        if (existingMaterial) {
+          materialId = existingMaterial.material_id;
+        } else {
+          // Create new material - use first category as default
+          materialId = `material-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          newMaterials.push({
+            material_id: materialId,
+            category_id: categories[0]?.category_id || '',
+            name: pm.name,
+            unit: pm.unit,
+            description: pm.description || '',
+            created_at: new Date().toISOString()
+          });
+        }
       }
 
       // TODO: Check if material already exists in construction inventory via API
+      // TODO: Add material to construction inventory with quantity
     });
 
     // TODO: Add new materials via API
@@ -225,10 +243,6 @@ export function DeliveryNoteImport({
     setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
     setEditingId(null);
   };
-
-  // TODO: Get categories from API instead of materials
-  const { data: categoriesData } = useCategories();
-  const categories = categoriesData?.categories || [];
 
   return (
     <Card>
@@ -263,7 +277,7 @@ export function DeliveryNoteImport({
                   accept="image/*,.pdf"
                   onChange={handleFileUpload}
                   className="max-w-xs mx-auto"
-                  disabled={processing}
+                  disabled={processing || analyzeDocumentMutation.isPending}
                 />
                 {selectedFile && (
                   <p className="text-sm text-slate-600 mt-4">
@@ -271,10 +285,15 @@ export function DeliveryNoteImport({
                   </p>
                 )}
               </div>
-              {processing && (
+                {(processing || analyzeDocumentMutation.isPending) && (
                 <div className="flex items-center justify-center gap-2 text-slate-600">
                   <Loader2 className="size-5 animate-spin" />
                   <span>Przetwarzanie dokumentu...</span>
+                </div>
+              )}
+              {analyzeDocumentMutation.isError && (
+                <div className="text-sm text-red-600 mt-2">
+                  Błąd podczas przetwarzania dokumentu. Spróbuj ponownie.
                 </div>
               )}
             </TabsContent>
@@ -433,11 +452,11 @@ export function DeliveryNoteImport({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[300px]">Nazwa materiału</TableHead>
+                    <TableHead className="w-[300px]">Materiał z dokumentu</TableHead>
+                    <TableHead className="w-[300px]">Materiał z bazy danych</TableHead>
                     <TableHead className="w-[120px]">Ilość</TableHead>
                     <TableHead className="w-[120px]">Jednostka</TableHead>
-                    <TableHead className="w-[200px]">Kategoria</TableHead>
-                    <TableHead className="w-[150px] text-right"></TableHead>
+                    <TableHead className="w-[100px] text-right"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -446,19 +465,30 @@ export function DeliveryNoteImport({
                       {editingId === material.id ? (
                         <>
                           <TableCell>
-                            <Select
+                            <Input
                               value={editForm.name}
+                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={editForm.selected_material_id || 'brak-materialu'}
                               onValueChange={(value) => {
-                                setEditForm({ ...editForm, name: value });
-                                // Auto-fill unit and category if material exists
-                                const selectedMaterial = materials.find(m => m.name === value);
+                                const actualMaterialId = value === 'brak-materialu' ? null : value;
+                                setEditForm({ ...editForm, selected_material_id: actualMaterialId || '' });
+                                const selectedMaterial = actualMaterialId ? materials.find(m => m.material_id === actualMaterialId) : null;
                                 if (selectedMaterial) {
-                                  setEditForm({
-                                    ...editForm,
-                                    name: value,
-                                    unit: selectedMaterial.unit,
-                                    category: selectedMaterial.category_id
-                                  });
+                                  setEditForm(prev => ({
+                                    ...prev,
+                                    selected_material_id: actualMaterialId || '',
+                                    unit: selectedMaterial.unit
+                                  }));
+                                } else {
+                                  setEditForm(prev => ({
+                                    ...prev,
+                                    selected_material_id: '',
+                                    unit: ''
+                                  }));
                                 }
                               }}
                             >
@@ -466,11 +496,18 @@ export function DeliveryNoteImport({
                                 <SelectValue placeholder="Wybierz materiał" />
                               </SelectTrigger>
                               <SelectContent>
-                                {materials.map(material => (
-                                  <SelectItem key={material.material_id} value={material.name}>
-                                    {material.name}
-                                  </SelectItem>
-                                ))}
+                                {materials.length === 0 ? (
+                                  <SelectItem value="brak-materialu">Brak materiałów</SelectItem>
+                                ) : (
+                                  <>
+                                    <SelectItem value="brak-materialu">Brak dopasowania</SelectItem>
+                                    {materials.map(mat => (
+                                      <SelectItem key={mat.material_id} value={mat.material_id}>
+                                        {mat.name}
+                                      </SelectItem>
+                                    ))}
+                                  </>
+                                )}
                               </SelectContent>
                             </Select>
                           </TableCell>
@@ -489,29 +526,6 @@ export function DeliveryNoteImport({
                               className="bg-slate-50"
                             />
                           </TableCell>
-                          <TableCell>
-                            <Select
-                              value={editForm.category}
-                              onValueChange={(value) => setEditForm({ ...editForm, category: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {categories.length === 0 ? (
-                                  <div className="px-2 py-6 text-center text-sm text-slate-500">
-                                    Brak kategorii
-                                  </div>
-                                ) : (
-                                  categories.map(category => (
-                                    <SelectItem key={category.category_id} value={category.category_id}>
-                                      {category.name}
-                                    </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex gap-1 justify-end">
                               <Button size="sm" onClick={handleSaveEdit}>
@@ -529,12 +543,54 @@ export function DeliveryNoteImport({
                         </>
                       ) : (
                         <>
-                          <TableCell>{material.name}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span>{material.name}</span>
+                              {material.suggested_materials && material.suggested_materials.length > 0 && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="size-4 text-blue-500 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <div className="space-y-1">
+                                      <p className="font-semibold">Sugerowane materiały:</p>
+                                      {material.suggested_materials.map((suggested, idx) => (
+                                        <div key={idx} className="text-sm">
+                                          • {suggested.name} ({suggested.similarity_score.toFixed(0)}% podobieństwa)
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={material.selected_material_id || 'brak-materialu'}
+                              onValueChange={(value) => handleMaterialSelect(value, material.id)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Wybierz materiał" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {materials.length === 0 ? (
+                                  <SelectItem value="brak-materialu">Brak materiałów</SelectItem>
+                                ) : (
+                                  <>
+                                    <SelectItem value="brak-materialu">Brak dopasowania</SelectItem>
+                                    {materials.map(mat => (
+                                      <SelectItem key={mat.material_id} value={mat.material_id}>
+                                        {mat.name}
+                                      </SelectItem>
+                                    ))}
+                                  </>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
                           <TableCell>{material.quantity.toLocaleString('pl-PL')}</TableCell>
                           <TableCell>{material.unit}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{material.category}</Badge>
-                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex gap-1 justify-end">
                               <Button
