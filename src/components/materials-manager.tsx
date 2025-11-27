@@ -245,8 +245,8 @@ export function MaterialsManager({
           {!isLoading && !error && materials.length > 0 && (
             <>
               {/* Filtry i wyszukiwanie */}
-              <div className="space-y-4 mb-6">
-                <div className="flex gap-4 items-end">
+              <div className="mb-6">
+                <div className="flex gap-4 items-end flex-wrap">
                   <div className="w-64">
                     <Label htmlFor="search" className="text-sm text-slate-600 mb-2 block">
                       {t.search}
@@ -262,40 +262,7 @@ export function MaterialsManager({
                       />
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSortToggle}
-                    className="gap-2"
-                  >
-                    {sortOrder === 'asc' && <ArrowUp className="size-4" />}
-                    {sortOrder === 'desc' && <ArrowDown className="size-4" />}
-                    {sortOrder === null && <ArrowUp className="size-4 opacity-50" />}
-                    {t.sortByName}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRefresh}
-                    className="gap-2"
-                  >
-                    <RefreshCw className="size-4" />
-                    {t.refresh}
-                  </Button>
-                  {hasActiveFilters && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="gap-2"
-                    >
-                      <X className="size-4" />
-                      {t.resetFilters}
-                    </Button>
-                  )}
-                </div>
-
-                <div className="flex gap-4">
+                  
                   {/* Filtrowanie po kategoriach */}
                   <Popover>
                     <PopoverTrigger asChild>
@@ -373,6 +340,36 @@ export function MaterialsManager({
                       </div>
                     </PopoverContent>
                   </Popover>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSortToggle}
+                    className="gap-2"
+                  >
+                    {sortOrder === 'asc' && <ArrowUp className="size-4" />}
+                    {sortOrder === 'desc' && <ArrowDown className="size-4" />}
+                    {sortOrder === null && <ArrowUp className="size-4 opacity-50" />}
+                    {t.sortByName}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    className="gap-2"
+                  >
+                    <RefreshCw className="size-4" />
+                    {t.refresh}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="gap-2"
+                  >
+                    <X className="size-4" />
+                    {t.resetFilters}
+                  </Button>
                 </div>
               </div>
 
