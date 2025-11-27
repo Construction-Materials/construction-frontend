@@ -56,6 +56,7 @@ interface DeliveryNoteMaterialsTableProps {
   onEditFormChange?: (field: string, value: string) => void;
   onMaterialSelect?: (materialId: string, parsedMaterialId: string) => void;
   onDelete?: (id: string) => void;
+  errorMaterialIds?: Set<string>;
   // Dla trybu manual
   manualMaterials?: ManualMaterialRow[];
   onManualMaterialChange?: (index: number, field: keyof ManualMaterialRow, value: string) => void;
@@ -76,6 +77,7 @@ export function DeliveryNoteMaterialsTable({
   onEditFormChange,
   onMaterialSelect,
   onDelete,
+  errorMaterialIds = new Set(),
   manualMaterials = [],
   onManualMaterialChange,
   onManualMaterialDelete,
@@ -97,8 +99,13 @@ export function DeliveryNoteMaterialsTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {parsedMaterials.map((material) => (
-            <TableRow key={material.id}>
+          {parsedMaterials.map((material) => {
+            const hasError = errorMaterialIds.has(material.id);
+            return (
+            <TableRow 
+              key={material.id}
+              className={hasError ? 'bg-red-50 hover:bg-red-100' : ''}
+            >
               {editingId === material.id ? (
                 <>
                   <TableCell>
@@ -233,7 +240,8 @@ export function DeliveryNoteMaterialsTable({
                 </>
               )}
             </TableRow>
-          ))}
+            );
+          })}
         </TableBody>
       </Table>
     );

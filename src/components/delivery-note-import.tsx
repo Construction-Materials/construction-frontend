@@ -15,6 +15,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
 import { useAnalyzeDocument } from '@/hooks/use-constructions';
 import { useCreateStorageItemsBulk } from '@/hooks/use-storage-items';
+import { toast } from 'sonner';
 
 interface DeliveryNoteImportProps {
   construction: Construction;
@@ -67,6 +68,7 @@ export function DeliveryNoteImport({
   const [manualMaterials, setManualMaterials] = useState<ManualMaterialRow[]>([
     { name: '', quantity: '', unit: '', category: '' }
   ]);
+  const [errorMaterialIds, setErrorMaterialIds] = useState<Set<string>>(new Set());
 
   const { t } = useLanguage();
   const analyzeDocumentMutation = useAnalyzeDocument();
@@ -117,7 +119,7 @@ export function DeliveryNoteImport({
       setParsedMaterials(parsed);
     } catch (error) {
       console.error('Error processing file:', error);
-      // TODO: Dodać toast/alert z błędem
+      toast.error(t.errorProcessingDocument);
     } finally {
       setProcessing(false);
     }
@@ -130,7 +132,7 @@ export function DeliveryNoteImport({
     );
 
     if (validManualMaterials.length === 0) {
-      // TODO: Dodać toast/alert - brak materiałów do dodania
+      toast.error(t.errorNoMaterialsToAdd);
       return;
     }
 
@@ -149,7 +151,7 @@ export function DeliveryNoteImport({
       .filter((item): item is { construction_id: string; material_id: string; quantity_value: number } => item !== null);
 
     if (materialsToAdd.length === 0) {
-      // TODO: Dodać toast/alert - nie znaleziono materiałów
+      toast.error(t.errorMaterialsNotFound);
       return;
     }
 
@@ -161,10 +163,11 @@ export function DeliveryNoteImport({
 
       // Reset state po sukcesie
       setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
+      toast.success(t.materialsAddedSuccess);
       onComplete();
     } catch (error) {
       console.error('Error adding materials to inventory:', error);
-      // TODO: Dodać toast/alert z błędem
+      toast.error(t.errorSavingMaterials);
     }
   };
 
@@ -201,11 +204,20 @@ export function DeliveryNoteImport({
         // Jeśli wybrano "brak-materialu", ustaw na null
         const actualMaterialId = materialId === 'brak-materialu' ? null : materialId;
         const selectedMaterial = actualMaterialId ? materials.find(mat => mat.material_id === actualMaterialId) : null;
-        return {
+        const updatedMaterial = {
           ...m,
           selected_material_id: actualMaterialId,
           unit: selectedMaterial?.unit || m.unit
         };
+        
+        // Usuń błąd jeśli materiał został dopasowany
+        if (actualMaterialId && errorMaterialIds.has(parsedMaterialId)) {
+          const newErrorIds = new Set(errorMaterialIds);
+          newErrorIds.delete(parsedMaterialId);
+          setErrorMaterialIds(newErrorIds);
+        }
+        
+        return updatedMaterial;
       }
       return m;
     }));
@@ -216,6 +228,24 @@ export function DeliveryNoteImport({
   };
 
   const handleAddToInventory = async () => {
+    // Sprawdź, czy wszystkie materiały mają dopasowanie
+    const materialsWithoutMatch = parsedMaterials.filter(
+      pm => !pm.selected_material_id
+    );
+
+    if (materialsWithoutMatch.length > 0) {
+      // Podświetl wiersze z błędami
+      const errorIds = new Set(materialsWithoutMatch.map(m => m.id));
+      setErrorMaterialIds(errorIds);
+      
+      // Wyświetl toast error
+      toast.error(t.errorNoMatchMaterials);
+      return;
+    }
+
+    // Wyczyść błędy jeśli wszystkie materiały mają dopasowanie
+    setErrorMaterialIds(new Set());
+
     // Filtruj tylko materiały z wybranym material_id
     const materialsToAdd = parsedMaterials
       .filter(pm => pm.selected_material_id !== null && pm.selected_material_id !== undefined)
@@ -226,7 +256,7 @@ export function DeliveryNoteImport({
       }));
 
     if (materialsToAdd.length === 0) {
-      // TODO: Dodać toast/alert - brak materiałów do dodania
+      toast.error(t.errorNoMaterialsToAdd);
       return;
     }
 
@@ -241,10 +271,12 @@ export function DeliveryNoteImport({
       setSelectedFile(null);
       setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
       setEditingId(null);
+      setErrorMaterialIds(new Set());
+      toast.success(t.materialsAddedSuccess);
       onComplete();
     } catch (error) {
       console.error('Error adding materials to inventory:', error);
-      // TODO: Dodać toast/alert z błędem
+      toast.error(t.errorAddingMaterials);
     }
   };
 
@@ -253,6 +285,7 @@ export function DeliveryNoteImport({
     setSelectedFile(null);
     setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
     setEditingId(null);
+    setErrorMaterialIds(new Set());
   };
 
   return (
@@ -400,6 +433,7 @@ export function DeliveryNoteImport({
                 onMaterialSelect={handleMaterialSelect}
                 onDelete={handleDelete}
                 materials={materials}
+                errorMaterialIds={errorMaterialIds}
               />
             </div>
 
