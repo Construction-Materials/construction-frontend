@@ -15,7 +15,10 @@ export default function HomePage() {
   };
 
   const handleAddConstruction = async (construction: Omit<import('@/types').Construction, 'construction_id' | 'created_at'>) => {
-    await createMutation.mutateAsync(construction);
+    await createMutation.mutateAsync({
+      ...construction,
+      img_url: null
+    });
   };
 
   return (

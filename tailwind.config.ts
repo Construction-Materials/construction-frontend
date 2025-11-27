@@ -42,6 +42,7 @@ const config: Config = {
           DEFAULT: "var(--card)",
           foreground: "var(--card-foreground)",
         },
+        brand: "#3ea8f0",
       },
       borderRadius: {
         lg: "var(--radius)",

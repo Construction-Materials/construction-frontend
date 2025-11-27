@@ -32,6 +32,7 @@ export interface Construction {
   start_date: string;
   status: 'planned' | 'active' | 'completed';
   created_at: string;
+  img_url?: string | null;
 }
 
 export interface Category {

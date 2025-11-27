@@ -288,9 +288,16 @@ export function ConstructionList({
               {filteredAndSortedConstructions.map((construction) => (
           <Card
             key={construction.construction_id}
-            className="hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full"
+            className="hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full relative"
             onClick={() => onSelectConstruction(construction.construction_id)}
           >
+            {construction.status === 'completed' && (
+              <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+                <span className="text-[#3ea8f0] font-bold text-2xl md:text-3xl lg:text-4xl drop-shadow-md rotate-[35deg]">
+                  Consider it done
+                </span>
+              </div>
+            )}
             <CardHeader className="flex-shrink-0">
               <div className="flex items-start justify-between gap-2">
                 <Building2 className="size-5 text-slate-500 mt-1 flex-shrink-0" />
