@@ -40,3 +40,27 @@ export interface Category {
   created_at: string;
 }
 
+export interface StorageItem {
+  construction_id: string;
+  material_id: string;
+  quantity_value: number | string;
+  created_at?: string;
+}
+
+export interface CreateStorageItemRequest {
+  construction_id: string;
+  material_id: string;
+  quantity_value: number;
+}
+
+export interface UpdateStorageItemRequest {
+  quantity_value: number;
+}
+
+export interface StorageItemsResponse {
+  storage_items: StorageItem[];
+  total: number;
+  page: number;
+  size: number;
+}
+
