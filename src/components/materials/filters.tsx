@@ -61,16 +61,14 @@ export function MaterialsFilters({
 
   return (
     <div className="mb-6">
-      <div className="flex gap-4 items-end flex-wrap">
-        <SearchInput
-          value={searchQuery}
-          onChange={onSearchChange}
-          placeholder={t.searchPlaceholder}
-          label={t.search}
-        />
-      </div>
-      <div className="flex w-full justify-between mt-4">
-        <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-4 items-end flex-wrap justify-between">
+        <div className="flex gap-2 flex-wrap items-end">
+          <SearchInput
+            value={searchQuery}
+            onChange={onSearchChange}
+            placeholder={t.searchPlaceholder}
+            label={t.search}
+          />
           <FilterPopover
             label={t.categories}
             items={categoryOptions}

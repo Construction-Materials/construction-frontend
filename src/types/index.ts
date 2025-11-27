@@ -64,3 +64,18 @@ export interface StorageItemsResponse {
   size: number;
 }
 
+export interface StorageMaterial {
+  construction_id: string;
+  material_id: string;
+  name: string;
+  category: string;
+  description: string;
+  unit: string;
+  quantity_value: string;
+  created_at: string;
+}
+
+export interface StorageMaterialsResponse {
+  materials: StorageMaterial[];
+}
+

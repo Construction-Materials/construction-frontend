@@ -1,4 +1,4 @@
-import { StorageItem, CreateStorageItemRequest, UpdateStorageItemRequest, StorageItemsResponse } from '@/types';
+import { StorageItem, CreateStorageItemRequest, UpdateStorageItemRequest, StorageItemsResponse, StorageMaterialsResponse } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -147,7 +147,7 @@ export async function createStorageItemsBulk(
   items: CreateStorageItemRequest[]
 ): Promise<StorageItem[]> {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}`,
+    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/bulk`,
     {
       method: 'POST',
       headers: {
@@ -170,5 +170,37 @@ export async function createStorageItemsBulk(
 
   const result = await response.json() as StorageItem[];
   return result;
+}
+
+/**
+ * Pobiera materiały z informacjami o storage dla danej konstrukcji
+ * GET /api/v1/storage-items/construction/{construction_id}/materials
+ */
+export async function getStorageMaterialsByConstruction(
+  constructionId: string
+): Promise<StorageMaterialsResponse> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/materials`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    let errorMessage = `Failed to fetch storage materials: ${response.statusText}`;
+    try {
+      const errorData = await response.json() as { message?: string; error?: string };
+      errorMessage = errorData.message || errorData.error || errorMessage;
+    } catch {
+      // Jeśli nie można sparsować JSON, użyj domyślnego komunikatu
+    }
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json() as StorageMaterialsResponse;
+  return data;
 }
 

@@ -14,6 +14,7 @@ import { appConfig } from '../config/app-config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
 import { useAnalyzeDocument } from '@/hooks/use-constructions';
+import { useCreateStorageItemsBulk } from '@/hooks/use-storage-items';
 
 interface DeliveryNoteImportProps {
   construction: Construction;
@@ -71,6 +72,7 @@ export function DeliveryNoteImport({
   const analyzeDocumentMutation = useAnalyzeDocument();
   const { data: categoriesData } = useCategories();
   const categories = categoriesData?.categories || [];
+  const createStorageItemsBulkMutation = useCreateStorageItemsBulk();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -121,24 +123,49 @@ export function DeliveryNoteImport({
     }
   };
 
-  const handleManualSubmit = () => {
-    // Convert manual materials directly to parsed materials without LLM
+  const handleManualSubmit = async () => {
+    // Filtruj tylko poprawne materiały
     const validManualMaterials = manualMaterials.filter(
       row => row.name.trim() && row.quantity.trim() && row.unit.trim() && row.category.trim()
     );
 
-    if (validManualMaterials.length === 0) return;
+    if (validManualMaterials.length === 0) {
+      // TODO: Dodać toast/alert - brak materiałów do dodania
+      return;
+    }
 
-    const parsed: ParsedMaterial[] = validManualMaterials.map((row, index) => ({
-      id: `manual-${Date.now()}-${index}`,
-      name: row.name,
-      quantity: parseFloat(row.quantity),
-      unit: row.unit,
-      category: row.category,
-      description: ''
-    }));
+    // Znajdź material_id dla każdego materiału na podstawie nazwy
+    const materialsToAdd = validManualMaterials
+      .map(row => {
+        const material = materials.find(m => m.name === row.name);
+        if (!material) return null;
+        
+        return {
+          construction_id: construction.construction_id,
+          material_id: material.material_id,
+          quantity_value: parseFloat(row.quantity)
+        };
+      })
+      .filter((item): item is { construction_id: string; material_id: string; quantity_value: number } => item !== null);
 
-    setParsedMaterials(parsed);
+    if (materialsToAdd.length === 0) {
+      // TODO: Dodać toast/alert - nie znaleziono materiałów
+      return;
+    }
+
+    try {
+      await createStorageItemsBulkMutation.mutateAsync({
+        constructionId: construction.construction_id,
+        items: materialsToAdd
+      });
+
+      // Reset state po sukcesie
+      setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
+      onComplete();
+    } catch (error) {
+      console.error('Error adding materials to inventory:', error);
+      // TODO: Dodać toast/alert z błędem
+    }
   };
 
   const handleEdit = (material: ParsedMaterial) => {
@@ -188,51 +215,37 @@ export function DeliveryNoteImport({
     setParsedMaterials(parsedMaterials.filter(m => m.id !== id));
   };
 
-  const handleAddToInventory = () => {
-    // First, collect new materials that don't exist yet
-    const newMaterials: Material[] = [];
-    // TODO: Materials are now managed via API endpoint /api/v1/materials/by-construction/{construction_id}
-    // This function needs to be refactored to use API
+  const handleAddToInventory = async () => {
+    // Filtruj tylko materiały z wybranym material_id
+    const materialsToAdd = parsedMaterials
+      .filter(pm => pm.selected_material_id !== null && pm.selected_material_id !== undefined)
+      .map(pm => ({
+        construction_id: construction.construction_id,
+        material_id: pm.selected_material_id!,
+        quantity_value: pm.quantity
+      }));
 
-    parsedMaterials.forEach(pm => {
-      // Use selected material if available, otherwise check if material exists by name
-      let materialId: string | null = pm.selected_material_id || null;
+    if (materialsToAdd.length === 0) {
+      // TODO: Dodać toast/alert - brak materiałów do dodania
+      return;
+    }
 
-      if (!materialId) {
-        // Check if material already exists in global materials by name
-        const existingMaterial = materials.find(m => 
-          m.name.toLowerCase() === pm.name.toLowerCase()
-        );
+    try {
+      await createStorageItemsBulkMutation.mutateAsync({
+        constructionId: construction.construction_id,
+        items: materialsToAdd
+      });
 
-        if (existingMaterial) {
-          materialId = existingMaterial.material_id;
-        } else {
-          // Create new material - use first category as default
-          materialId = `material-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          newMaterials.push({
-            material_id: materialId,
-            category_id: categories[0]?.category_id || '',
-            name: pm.name,
-            unit: pm.unit,
-            description: pm.description || '',
-            created_at: new Date().toISOString()
-          });
-        }
-      }
-
-      // TODO: Check if material already exists in construction inventory via API
-      // TODO: Add material to construction inventory with quantity
-    });
-
-    // TODO: Add new materials via API
-    // newMaterials.forEach(material => createMaterial(material));
-
-    // Reset state
-    setParsedMaterials([]);
-    setSelectedFile(null);
-    setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
-    setEditingId(null);
-    onComplete();
+      // Reset state po sukcesie
+      setParsedMaterials([]);
+      setSelectedFile(null);
+      setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
+      setEditingId(null);
+      onComplete();
+    } catch (error) {
+      console.error('Error adding materials to inventory:', error);
+      // TODO: Dodać toast/alert z błędem
+    }
   };
 
   const handleReset = () => {
@@ -333,12 +346,29 @@ export function DeliveryNoteImport({
               </div>
               <Button
                 onClick={handleManualSubmit}
-                disabled={manualMaterials.every(row => !row.name.trim() || !row.quantity.trim() || !row.unit.trim() || !row.category.trim())}
+                disabled={
+                  createStorageItemsBulkMutation.isPending ||
+                  manualMaterials.every(row => !row.name.trim() || !row.quantity.trim() || !row.unit.trim() || !row.category.trim())
+                }
                 className="w-full"
               >
-                <CheckCircle2 className="size-4 mr-2" />
-                Przejdź do podsumowania ({manualMaterials.filter(row => row.name.trim() && row.quantity.trim() && row.unit.trim() && row.category.trim()).length})
+                {createStorageItemsBulkMutation.isPending ? (
+                  <>
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    Zapisywanie...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="size-4 mr-2" />
+                    Zapisz materiały ({manualMaterials.filter(row => row.name.trim() && row.quantity.trim() && row.unit.trim() && row.category.trim()).length})
+                  </>
+                )}
               </Button>
+              {createStorageItemsBulkMutation.isError && (
+                <div className="text-sm text-red-600 mt-2">
+                  Błąd podczas zapisywania materiałów. Spróbuj ponownie.
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         ) : (
@@ -378,11 +408,26 @@ export function DeliveryNoteImport({
                 onClick={handleAddToInventory}
                 className="flex-1"
                 size="lg"
+                disabled={createStorageItemsBulkMutation.isPending || parsedMaterials.filter(pm => pm.selected_material_id).length === 0}
               >
-                <Plus className="size-4 mr-2" />
-                Dodaj {parsedMaterials.length} materiał(ów) do magazynu
+                {createStorageItemsBulkMutation.isPending ? (
+                  <>
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    Dodawanie...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="size-4 mr-2" />
+                    Dodaj {parsedMaterials.filter(pm => pm.selected_material_id).length} materiał(ów) do magazynu
+                  </>
+                )}
               </Button>
             </div>
+            {createStorageItemsBulkMutation.isError && (
+              <div className="text-sm text-red-600 mt-2">
+                Błąd podczas dodawania materiałów do magazynu. Spróbuj ponownie.
+              </div>
+            )}
           </div>
         )}
       </CardContent>
