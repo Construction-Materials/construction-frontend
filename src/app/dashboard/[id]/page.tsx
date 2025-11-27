@@ -22,6 +22,7 @@ import { useConstruction, useUpdateConstruction, useDeleteConstruction } from '@
 import { useMaterials } from '@/hooks/use-materials';
 import { Construction } from '@/types';
 import { ConstructionEditDialog } from '@/components/construction-edit-dialog';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const params = useParams();
@@ -60,18 +61,22 @@ export default function DashboardPage() {
     
     try {
       await handleUpdateConstruction(construction.construction_id, editFormData);
+      toast.success(t.constructionUpdated);
       setEditDialogOpen(false);
     } catch (error) {
       console.error('Failed to update construction:', error);
+      toast.error(t.constructionUpdateError);
     }
   };
 
   const handleDeleteConstruction = async () => {
     try {
       await deleteMutation.mutateAsync(id);
+      toast.success(t.constructionDeleted);
       router.push('/');
     } catch (error) {
       console.error('Failed to delete construction:', error);
+      toast.error(t.constructionDeleteError);
     }
   };
 
