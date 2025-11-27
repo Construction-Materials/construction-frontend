@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Combobox } from './ui/combobox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
@@ -471,7 +472,7 @@ export function DeliveryNoteImport({
                             />
                           </TableCell>
                           <TableCell>
-                            <Select
+                            <Combobox
                               value={editForm.selected_material_id || 'brak-materialu'}
                               onValueChange={(value) => {
                                 const actualMaterialId = value === 'brak-materialu' ? null : value;
@@ -491,25 +492,20 @@ export function DeliveryNoteImport({
                                   }));
                                 }
                               }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Wybierz materiał" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {materials.length === 0 ? (
-                                  <SelectItem value="brak-materialu">Brak materiałów</SelectItem>
-                                ) : (
-                                  <>
-                                    <SelectItem value="brak-materialu">Brak dopasowania</SelectItem>
-                                    {materials.map(mat => (
-                                      <SelectItem key={mat.material_id} value={mat.material_id}>
-                                        {mat.name}
-                                      </SelectItem>
-                                    ))}
-                                  </>
-                                )}
-                              </SelectContent>
-                            </Select>
+                              placeholder="Wybierz materiał"
+                              options={
+                                materials.length === 0
+                                  ? [{ value: 'brak-materialu', label: 'Brak materiałów' }]
+                                  : [
+                                      { value: 'brak-materialu', label: 'Brak dopasowania' },
+                                      ...materials.map(mat => ({
+                                        value: mat.material_id,
+                                        label: mat.name
+                                      }))
+                                    ]
+                              }
+                              emptyText="Brak wyników"
+                            />
                           </TableCell>
                           <TableCell>
                             <Input
@@ -566,28 +562,23 @@ export function DeliveryNoteImport({
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Select
+                            <Combobox
                               value={material.selected_material_id || 'brak-materialu'}
                               onValueChange={(value) => handleMaterialSelect(value, material.id)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Wybierz materiał" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {materials.length === 0 ? (
-                                  <SelectItem value="brak-materialu">Brak materiałów</SelectItem>
-                                ) : (
-                                  <>
-                                    <SelectItem value="brak-materialu">Brak dopasowania</SelectItem>
-                                    {materials.map(mat => (
-                                      <SelectItem key={mat.material_id} value={mat.material_id}>
-                                        {mat.name}
-                                      </SelectItem>
-                                    ))}
-                                  </>
-                                )}
-                              </SelectContent>
-                            </Select>
+                              placeholder="Wybierz materiał"
+                              options={
+                                materials.length === 0
+                                  ? [{ value: 'brak-materialu', label: 'Brak materiałów' }]
+                                  : [
+                                      { value: 'brak-materialu', label: 'Brak dopasowania' },
+                                      ...materials.map(mat => ({
+                                        value: mat.material_id,
+                                        label: mat.name
+                                      }))
+                                    ]
+                              }
+                              emptyText="Brak wyników"
+                            />
                           </TableCell>
                           <TableCell>{material.quantity.toLocaleString('pl-PL')}</TableCell>
                           <TableCell>{material.unit}</TableCell>
