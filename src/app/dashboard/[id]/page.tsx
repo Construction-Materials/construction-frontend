@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ConstructionDashboard } from '@/components/construction-dashboard';
 import { Header } from '@/components/shared/Header';
@@ -15,11 +15,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useConstruction, useUpdateConstruction, useDeleteConstruction } from '@/hooks/use-constructions';
 import { useMaterials } from '@/hooks/use-materials';
+import { Construction } from '@/types';
+import { ConstructionEditDialog } from '@/components/construction-edit-dialog';
 
 export default function DashboardPage() {
   const params = useParams();
@@ -33,9 +35,35 @@ export default function DashboardPage() {
   const updateMutation = useUpdateConstruction();
   const deleteMutation = useDeleteConstruction();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState<Partial<Construction>>({});
 
-  const handleUpdateConstruction = async (id: string, updates: Partial<import('@/types').Construction>) => {
+  useEffect(() => {
+    if (construction) {
+      setEditFormData({
+        name: construction.name,
+        description: construction.description,
+        address: construction.address,
+        start_date: construction.start_date,
+        status: construction.status,
+      });
+    }
+  }, [construction]);
+
+  const handleUpdateConstruction = async (id: string, updates: Partial<Construction>) => {
     await updateMutation.mutateAsync({ id, data: updates });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!construction) return;
+    
+    try {
+      await handleUpdateConstruction(construction.construction_id, editFormData);
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to update construction:', error);
+    }
   };
 
   const handleDeleteConstruction = async () => {
@@ -84,14 +112,24 @@ export default function DashboardPage() {
             <ArrowLeft className="size-4 mr-2" />
             {t.back}
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash2 className="size-4 mr-2" />
-            Usuń Budowę
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditDialogOpen(true)}
+            >
+              <Edit className="size-4 mr-2" />
+              {t.edit}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="size-4 mr-2" />
+              {t.deleteConstruction}
+            </Button>
+          </div>
         </div>
         <ConstructionDashboard
           construction={construction}
@@ -102,21 +140,31 @@ export default function DashboardPage() {
           onUpdateOrder={updateOrder}
         />
 
+        <ConstructionEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          construction={construction}
+          formData={editFormData}
+          onFormDataChange={setEditFormData}
+          onSubmit={handleEditSubmit}
+          isPending={updateMutation.isPending}
+        />
+
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Czy na pewno chcesz usunąć konstrukcję?</AlertDialogTitle>
+              <AlertDialogTitle>{t.deleteConstructionConfirm}</AlertDialogTitle>
               <AlertDialogDescription>
-                Ta operacja jest nieodwracalna. Wszystkie dane związane z konstrukcją "{construction.name}" zostaną trwale usunięte.
+                {t.deleteConstructionDesc.replace('{name}', construction.name)}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Anuluj</AlertDialogCancel>
+              <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteConstruction}
                 className="bg-red-600 hover:bg-red-700"
               >
-                Usuń
+                {t.delete}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

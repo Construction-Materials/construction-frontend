@@ -49,6 +49,11 @@ export const translations = {
     warehouse: 'Magazyn',
     orders: 'Zamówienia',
     importDeliveryNote: 'Importuj notatkę dostawy',
+    editConstruction: 'Edytuj budowę',
+    updateConstructionInfo: 'Zaktualizuj informacje o budowie',
+    deleteConstruction: 'Usuń budowę',
+    deleteConstructionConfirm: 'Czy na pewno chcesz usunąć konstrukcję?',
+    deleteConstructionDesc: 'Ta operacja jest nieodwracalna. Wszystkie dane związane z konstrukcją "{name}" zostaną trwale usunięte.',
     
     // Warehouse
     warehouseMaterials: 'Materiały w magazynie',
@@ -222,6 +227,11 @@ export const translations = {
     warehouse: 'Warehouse',
     orders: 'Orders',
     importDeliveryNote: 'Import Delivery Note',
+    editConstruction: 'Edit Construction',
+    updateConstructionInfo: 'Update construction information',
+    deleteConstruction: 'Delete Construction',
+    deleteConstructionConfirm: 'Are you sure you want to delete this construction?',
+    deleteConstructionDesc: 'This operation is irreversible. All data related to the construction "{name}" will be permanently deleted.',
     
     // Warehouse
     warehouseMaterials: 'Warehouse Materials',
