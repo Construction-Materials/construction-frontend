@@ -452,7 +452,7 @@ export function DeliveryNoteImport({
                 ) : (
                   <>
                     <Plus className="size-4 mr-2" />
-                    {t.addMaterialsToWarehouse} {parsedMaterials.filter(pm => pm.selected_material_id).length} {t.material}(ów) {t.addToWarehouse}
+                    {t.addToWarehouse}
                   </>
                 )}
               </Button>
