@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Languages } from 'lucide-react';
+import { Languages, Building2, Package } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -28,8 +28,13 @@ export function Header() {
             <Image src={logo} alt="ElectraM&E" height={60} width={180} className="h-14 w-auto" />
           </button>
           <div className="flex items-center gap-3">
+              <Button onClick={() => window.location.href = 'http://127.0.0.1:3001/'} variant="outline">
+                <Building2 className="size-4 mr-2" />
+                {t.charts}
+              </Button>
             {pathname === '/' && (
               <Button onClick={handleGoToMaterials} variant="outline">
+                <Package className="size-4 mr-2" />
                 {t.manageMaterials}
               </Button>
             )}

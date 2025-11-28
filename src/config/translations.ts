@@ -4,6 +4,7 @@ export const translations = {
   pl: {
     // Header
     manageMaterials: 'Zarządzaj materiałami',
+    charts: 'Wykresy',
     back: 'Powrót',
     locale: 'pl-PL',
     
@@ -105,6 +106,7 @@ export const translations = {
     search: 'Wyszukaj',
     searchPlaceholder: 'Szukaj po nazwie...',
     sortByName: 'Sortuj po nazwie',
+    sortByStatus: 'Sortuj po statusie',
     refresh: 'Odśwież',
     resetFilters: 'Resetuj filtry',
     categories: 'Kategorie',
@@ -190,6 +192,7 @@ export const translations = {
   en: {
     // Header
     manageMaterials: 'Manage Materials',
+    charts: 'Charts',
     back: 'Back',
     locale: 'en-US',
     
@@ -291,6 +294,7 @@ export const translations = {
     search: 'Search',
     searchPlaceholder: 'Search by name...',
     sortByName: 'Sort by name',
+    sortByStatus: 'Sort by status',
     refresh: 'Refresh',
     resetFilters: 'Reset filters',
     categories: 'Categories',

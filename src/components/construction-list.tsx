@@ -48,6 +48,7 @@ export function ConstructionList({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
+  const [statusSortOrder, setStatusSortOrder] = useState<'asc' | 'desc' | null>(null);
   const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,6 +70,13 @@ export function ConstructionList({
 
   const { t } = useLanguage();
 
+  // Kolejność statusów dla sortowania (aktywne najpierw, potem planowane, na końcu zakończone)
+  const statusOrder: Record<Construction['status'], number> = {
+    'active': 0,
+    'planned': 1,
+    'completed': 2
+  };
+
   // Filtrowanie i sortowanie konstrukcji
   const filteredAndSortedConstructions = constructions
     .filter(construction => {
@@ -88,12 +96,21 @@ export function ConstructionList({
       return true;
     })
     .sort((a, b) => {
-      if (sortOrder === null) return 0;
-      if (sortOrder === 'asc') {
-        return a.name.localeCompare(b.name);
-      } else {
-        return b.name.localeCompare(a.name);
+      // Sortowanie po statusie (priorytet)
+      if (statusSortOrder !== null) {
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        if (statusDiff !== 0) {
+          return statusSortOrder === 'asc' ? statusDiff : -statusDiff;
+        }
       }
+      // Sortowanie po nazwie (drugorzędne)
+      if (sortOrder !== null) {
+        const nameDiff = a.name.localeCompare(b.name);
+        if (nameDiff !== 0) {
+          return sortOrder === 'asc' ? nameDiff : -nameDiff;
+        }
+      }
+      return 0;
     });
 
   const handleStatusToggle = (status: string) => {
@@ -114,10 +131,21 @@ export function ConstructionList({
     }
   };
 
+  const handleStatusSortToggle = () => {
+    if (statusSortOrder === null) {
+      setStatusSortOrder('asc');
+    } else if (statusSortOrder === 'asc') {
+      setStatusSortOrder('desc');
+    } else {
+      setStatusSortOrder(null);
+    }
+  };
+
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedStatuses([]);
     setSortOrder(null);
+    setStatusSortOrder(null);
   };
 
   const handleRefresh = () => {
@@ -266,6 +294,11 @@ export function ConstructionList({
                   sortOrder={sortOrder}
                   onToggle={handleSortToggle}
                   label={t.sortByName}
+                />
+                <SortButton
+                  sortOrder={statusSortOrder}
+                  onToggle={handleStatusSortToggle}
+                  label={t.sortByStatus}
                 />
               </div>
               <FilterActions
