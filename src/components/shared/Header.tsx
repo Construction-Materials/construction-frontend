@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Languages, Building2, Package } from 'lucide-react';
+import { Languages, Building2, Package, ExternalLink } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -38,6 +38,13 @@ export function Header() {
                 {t.manageMaterials}
               </Button>
             )}
+            <Button
+              variant="outline"
+              onClick={() => window.open('https://stall-wager-31310199.figma.site/', '_blank')}
+            >
+              <ExternalLink className="size-4 mr-2" />
+              Figma
+            </Button>
             <Button
               variant="outline"
               size="sm"
