@@ -38,6 +38,30 @@ export async function getMaterials(
   return data;
 }
 
+export async function createMaterial(
+  data: {
+    category_id: string;
+    name: string;
+    description: string;
+    unit: string;
+  }
+): Promise<Material> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/materials/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create material: ${response.statusText}`);
+  }
+
+  const result = await response.json() as Material;
+  return result;
+}
+
 export async function getMaterialById(id: string): Promise<Material> {
   const response = await fetch(`${API_BASE_URL}/api/v1/materials/${id}`, {
     method: 'GET',

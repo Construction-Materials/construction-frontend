@@ -10,16 +10,14 @@ export const appConfig = {
 
   // Material units
   materialUnits: [
-    { value: 'szt.', label: 'szt. - sztuka' },
-    { value: 'kg', label: 'kg - kilogram' },
-    { value: 't', label: 't - tona' },
-    { value: 'm', label: 'm - metr' },
-    { value: 'm²', label: 'm² - metr kwadratowy' },
-    { value: 'm³', label: 'm³ - metr sześcienny' },
-    { value: 'l', label: 'l - litr' },
-    { value: 'opak.', label: 'opak. - opakowanie' },
-    { value: 'worek', label: 'worek' },
-    { value: 'paleta', label: 'paleta' }
+    { value: 'meters', label: 'm - metr' },
+    { value: 'kilograms', label: 'kg - kilogram' },
+    { value: 'cubic_meters', label: 'm³ - metr sześcienny' },
+    { value: 'cubic_centimeters', label: 'cm³ - centymetr sześcienny' },
+    { value: 'cubic_millimeters', label: 'mm³ - milimetr sześcienny' },
+    { value: 'liters', label: 'l - litr' },
+    { value: 'pieces', label: 'szt. - sztuka' },
+    { value: 'other', label: 'Inne' }
   ],
 
   // Construction statuses

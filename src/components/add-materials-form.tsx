@@ -19,11 +19,12 @@ interface MaterialFormData {
 }
 
 interface AddMaterialsFormProps {
-  onAddMaterials: (materials: MaterialFormData[]) => void;
+  onAddMaterials: (materials: MaterialFormData[]) => Promise<void>;
   categories: Array<{ category_id: string; name: string }>;
+  isLoading?: boolean;
 }
 
-export function AddMaterialsForm({ onAddMaterials, categories }: AddMaterialsFormProps) {
+export function AddMaterialsForm({ onAddMaterials, categories, isLoading = false }: AddMaterialsFormProps) {
   const [materials, setMaterials] = useState<MaterialFormData[]>([
     { name: '', unit: '', category: '', description: '' }
   ]);
@@ -47,11 +48,11 @@ export function AddMaterialsForm({ onAddMaterials, categories }: AddMaterialsFor
     setMaterials(updated);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validMaterials = materials.filter(m => m.name && m.unit && m.category);
     if (validMaterials.length > 0) {
-      onAddMaterials(validMaterials);
+      await onAddMaterials(validMaterials);
     }
   };
 
@@ -140,7 +141,7 @@ export function AddMaterialsForm({ onAddMaterials, categories }: AddMaterialsFor
                         <SelectContent>
                           {categories.length === 0 ? (
                             <div className="px-2 py-6 text-center text-sm text-slate-500">
-                              Brak kategorii
+                              {t.noCategories}
                             </div>
                           ) : (
                             categories.map(category => (
@@ -182,8 +183,8 @@ export function AddMaterialsForm({ onAddMaterials, categories }: AddMaterialsFor
             </div>
 
             <div className={`flex gap-3 ${appConfig.spacing.formButtons} border-t`}>
-              <Button type="submit" size="lg" className="flex-1">
-                {t.saveAllMaterials} ({materials.filter(m => m.name && m.unit && m.category).length})
+              <Button type="submit" size="lg" className="flex-1" disabled={isLoading}>
+                {isLoading ? t.saving : `${t.saveAllMaterials} (${materials.filter(m => m.name && m.unit && m.category).length})`}
               </Button>
             </div>
           </form>

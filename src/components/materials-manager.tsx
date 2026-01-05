@@ -24,7 +24,9 @@ import {
 } from './ui/alert-dialog';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
+import { useUpdateMaterial, useDeleteMaterial } from '@/hooks/use-materials';
 import { CategoriesManager } from './categories-manager';
+import { appConfig } from '../config/app-config';
 
 interface MaterialsManagerProps {
   materials: Material[];
@@ -39,6 +41,8 @@ export function MaterialsManager({
   error,
   onGoToAddMaterial
 }: MaterialsManagerProps) {
+  const updateMutation = useUpdateMaterial();
+  const deleteMutation = useDeleteMaterial();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
@@ -50,13 +54,25 @@ export function MaterialsManager({
     description: ''
   });
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedMaterialId) {
-      // TODO: Implement update via API
-      console.log('Update material:', selectedMaterialId, formData);
-      setEditDialogOpen(false);
-      setSelectedMaterialId(null);
+      try {
+        await updateMutation.mutateAsync({
+          id: selectedMaterialId,
+          data: {
+            name: formData.name,
+            unit: formData.unit,
+            category_id: formData.category,
+            description: formData.description || ''
+          }
+        });
+        setEditDialogOpen(false);
+        setSelectedMaterialId(null);
+        setFormData({ name: '', unit: '', category: '', description: '' });
+      } catch (error) {
+        console.error('Failed to update material:', error);
+      }
     }
   };
 
@@ -76,25 +92,27 @@ export function MaterialsManager({
     setDeleteDialogOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (selectedMaterialId) {
-      // TODO: Implement delete via API
-      console.log('Delete material:', selectedMaterialId);
-      setDeleteDialogOpen(false);
-      setSelectedMaterialId(null);
+      try {
+        await deleteMutation.mutateAsync(selectedMaterialId);
+        setDeleteDialogOpen(false);
+        setSelectedMaterialId(null);
+      } catch (error) {
+        console.error('Failed to delete material:', error);
+      }
     }
   };
 
   const { data: categoriesData } = useCategories();
   const categories = categoriesData?.categories || [];
+  const { t } = useLanguage();
 
   // Helper function to get category name by ID
   const getCategoryName = (categoryId: string) => {
     const category = categories.find(c => c.category_id === categoryId);
-    return category?.name || "Brak nazwy";
+    return category?.name || t.noName;
   };
-
-  const { t } = useLanguage();
 
   return (
     <div className="space-y-4">
@@ -110,7 +128,7 @@ export function MaterialsManager({
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setCategoriesDialogOpen(true)}>
                 <Tag className="size-4 mr-2" />
-                Edit Categories
+                {t.editCategories}
               </Button>
               <Button onClick={onGoToAddMaterial}>
                 <Plus className="size-4 mr-2" />
@@ -122,13 +140,13 @@ export function MaterialsManager({
         <CardContent>
           {isLoading && (
             <div className="text-center py-12">
-              <p className="text-slate-600">Ładowanie materiałów...</p>
+              <p className="text-slate-600">{t.loadingMaterials}</p>
             </div>
           )}
 
           {error && (
             <div className="text-center py-12">
-              <p className="text-red-600">Błąd podczas ładowania materiałów: {error.message}</p>
+              <p className="text-red-600">{t.errorLoadingMaterials}: {error.message}</p>
             </div>
           )}
 
@@ -159,13 +177,13 @@ export function MaterialsManager({
               <TableBody>
                 {materials.map((material) => (
                   <TableRow key={material.material_id}>
-                    <TableCell>{material.name}</TableCell>
+                    <TableCell className="max-w-[200px] truncate" title={material.name}>{material.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{getCategoryName(material.category_id)}</Badge>
                     </TableCell>
                     <TableCell>{material.unit}</TableCell>
-                    <TableCell className="max-w-xs">
-                      <span className="text-sm text-slate-600">
+                    <TableCell className="max-w-[200px] truncate">
+                      <span className="text-sm text-slate-600" title={material.description || ''}>
                         {material.description || '-'}
                       </span>
                     </TableCell>
@@ -216,12 +234,22 @@ export function MaterialsManager({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="edit-unit">{t.unit} *</Label>
-                <Input
-                  id="edit-unit"
+                <Select
                   value={formData.unit}
-                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                  onValueChange={(value) => setFormData({ ...formData, unit: value })}
                   required
-                />
+                >
+                  <SelectTrigger id="edit-unit">
+                    <SelectValue placeholder={t.selectUnit} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {appConfig.materialUnits.map(unit => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {unit.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="edit-category">{t.category} *</Label>
@@ -236,7 +264,7 @@ export function MaterialsManager({
                   <SelectContent>
                     {categories.length === 0 ? (
                       <div className="px-2 py-6 text-center text-sm text-slate-500">
-                        Brak kategorii
+                        {t.noCategories}
                       </div>
                     ) : (
                       categories.map(category => (
@@ -294,9 +322,9 @@ export function MaterialsManager({
       <Dialog open={categoriesDialogOpen} onOpenChange={setCategoriesDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Zarządzanie kategoriami</DialogTitle>
+            <DialogTitle>{t.manageCategories}</DialogTitle>
             <DialogDescription>
-              Dodaj, edytuj lub usuń kategorie materiałów
+              {t.manageCategoriesDesc}
             </DialogDescription>
           </DialogHeader>
           <CategoriesManager />

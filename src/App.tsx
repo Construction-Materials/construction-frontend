@@ -9,6 +9,7 @@ import logo from 'figma:asset/4e6bec2710f675e854b79a90438ae95376220530.png';
 import { appConfig } from './config/app-config';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { Language } from './config/translations';
+import { useCategories } from './hooks/use-categories';
 
 export interface Material {
   id: string;
@@ -231,6 +232,11 @@ function AppContent() {
               {view === 'list' && (
                 <Button onClick={handleGoToMaterials} variant="outline">
                   {t.manageMaterials}
+                </Button>
+              )}
+              {view === 'list' && (
+                <Button onClick={handleGoToMaterials} variant="outline">
+                  {t.manageCategories}
                 </Button>
               )}
             </div>

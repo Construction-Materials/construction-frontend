@@ -157,13 +157,13 @@ export function ConstructionList({
 
       {isLoading && (
         <div className="text-center py-12">
-          <p className="text-slate-600">Ładowanie...</p>
+          <p className="text-slate-600">{t.loading}</p>
         </div>
       )}
 
       {error && (
         <div className="text-center py-12">
-          <p className="text-red-600">Błąd podczas ładowania konstrukcji: {error.message}</p>
+          <p className="text-red-600">{t.errorLoadingConstructions}: {error.message}</p>
         </div>
       )}
 

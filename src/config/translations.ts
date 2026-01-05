@@ -4,6 +4,9 @@ export const translations = {
   pl: {
     // Header
     manageMaterials: 'Zarządzaj materiałami',
+    manageCategories: 'Zarządzaj kategoriami',
+    categories: 'Kategorie',
+    materials: 'Materiały',
     back: 'Powrót',
     locale: 'pl-PL',
     
@@ -141,10 +144,62 @@ export const translations = {
     'litr': 'litr',
     'tona': 'tona',
     'opakowanie': 'opakowanie',
+
+    // Loading & Errors
+    loading: 'Ładowanie...',
+    loadingMaterials: 'Ładowanie materiałów...',
+    loadingCategories: 'Ładowanie kategorii...',
+    errorLoadingMaterials: 'Błąd podczas ładowania materiałów',
+    errorLoadingCategories: 'Błąd podczas ładowania kategorii',
+    errorLoadingConstructions: 'Błąd podczas ładowania budów',
+    saving: 'Zapisywanie...',
+    noName: 'Brak nazwy',
+
+    // Categories Manager
+    noCategories: 'Brak kategorii',
+    addCategory: 'Dodaj kategorię',
+    addFirstCategory: 'Dodaj pierwszą kategorię',
+    categoryName: 'Nazwa kategorii',
+    editCategory: 'Edytuj kategorię',
+    updateCategoryName: 'Zaktualizuj nazwę kategorii',
+    enterNewCategoryName: 'Wprowadź nazwę nowej kategorii',
+    categoryPlaceholder: 'np. Materiały podstawowe',
+    deleteCategoryConfirm: 'Czy na pewno chcesz usunąć kategorię?',
+    deleteCategoryConfirmDesc: 'Ta operacja jest nieodwracalna. Wszystkie materiały przypisane do tej kategorii mogą zostać bez kategorii.',
+    editCategories: 'Edytuj kategorie',
+    manageCategories: 'Zarządzanie kategoriami',
+    manageCategoriesDesc: 'Dodaj, edytuj lub usuń kategorie materiałów',
+
+    // Delivery Note Import Extended
+    deliveryNoteTitle: 'Import noty dostawy',
+    deliveryNoteDesc: 'Wgraj plik PDF/zdjęcie lub wprowadź dane ręcznie. System automatycznie rozpozna materiały.',
+    uploadTab: 'Wgraj plik',
+    manualTab: 'Wprowadź ręcznie',
+    dragAndDrop: 'Przeciągnij i upuść plik lub kliknij aby wybrać',
+    selectedFile: 'Wybrany plik',
+    processingDocument: 'Przetwarzanie dokumentu...',
+    enterDeliveryNoteData: 'Wprowadź dane z delivery note',
+    selectMaterialPlaceholder: 'Wybierz materiał',
+    selectPlaceholder: 'Wybierz',
+    goToSummary: 'Przejdź do podsumowania',
+    recognizedMaterials: 'Rozpoznane materiały',
+    reviewBeforeAdding: 'Sprawdź i edytuj dane przed dodaniem do magazynu',
+    startOver: 'Rozpocznij od nowa',
+    addMaterialsToWarehouse: 'Dodaj materiał(ów) do magazynu',
+    basicMaterials: 'Materiały podstawowe',
+    sampleMaterial: 'Przykładowy materiał',
+
+    // Construction Dashboard Page
+    deleteConstruction: 'Usuń budowę',
+    deleteConstructionConfirm: 'Czy na pewno chcesz usunąć budowę?',
+    deleteConstructionConfirmDesc: 'Ta operacja jest nieodwracalna. Wszystkie dane związane z budową zostaną trwale usunięte.',
+    constructionNotFound: 'Budowa nie znaleziona',
   },
   en: {
     // Header
     manageMaterials: 'Manage Materials',
+    categories: 'Categories',
+    materials: 'Materials',
     back: 'Back',
     locale: 'en-US',
     
@@ -282,5 +337,55 @@ export const translations = {
     'litr': 'liter',
     'tona': 'ton',
     'opakowanie': 'package',
+
+    // Loading & Errors
+    loading: 'Loading...',
+    loadingMaterials: 'Loading materials...',
+    loadingCategories: 'Loading categories...',
+    errorLoadingMaterials: 'Error loading materials',
+    errorLoadingCategories: 'Error loading categories',
+    errorLoadingConstructions: 'Error loading constructions',
+    saving: 'Saving...',
+    noName: 'No name',
+
+    // Categories Manager
+    noCategories: 'No categories',
+    addCategory: 'Add category',
+    addFirstCategory: 'Add first category',
+    categoryName: 'Category name',
+    editCategory: 'Edit category',
+    updateCategoryName: 'Update category name',
+    enterNewCategoryName: 'Enter new category name',
+    categoryPlaceholder: 'e.g. Basic materials',
+    deleteCategoryConfirm: 'Are you sure you want to delete this category?',
+    deleteCategoryConfirmDesc: 'This action is irreversible. All materials assigned to this category may be left without a category.',
+    editCategories: 'Edit categories',
+    manageCategories: 'Manage categories',
+    manageCategoriesDesc: 'Add, edit or delete material categories',
+
+    // Delivery Note Import Extended
+    deliveryNoteTitle: 'Delivery Note Import',
+    deliveryNoteDesc: 'Upload a PDF/photo or enter data manually. The system will automatically recognize materials.',
+    uploadTab: 'Upload file',
+    manualTab: 'Enter manually',
+    dragAndDrop: 'Drag and drop file or click to select',
+    selectedFile: 'Selected file',
+    processingDocument: 'Processing document...',
+    enterDeliveryNoteData: 'Enter delivery note data',
+    selectMaterialPlaceholder: 'Select material',
+    selectPlaceholder: 'Select',
+    goToSummary: 'Go to summary',
+    recognizedMaterials: 'Recognized materials',
+    reviewBeforeAdding: 'Review and edit data before adding to warehouse',
+    startOver: 'Start over',
+    addMaterialsToWarehouse: 'Add material(s) to warehouse',
+    basicMaterials: 'Basic materials',
+    sampleMaterial: 'Sample material',
+
+    // Construction Dashboard Page
+    deleteConstruction: 'Delete construction',
+    deleteConstructionConfirm: 'Are you sure you want to delete this construction?',
+    deleteConstructionConfirmDesc: 'This action is irreversible. All data associated with this construction will be permanently deleted.',
+    constructionNotFound: 'Construction not found',
   }
 };

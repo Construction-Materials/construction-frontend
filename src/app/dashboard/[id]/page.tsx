@@ -54,7 +54,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-slate-50">
         <Header />
         <main className="container mx-auto px-4 py-8">
-          <p>Ładowanie...</p>
+          <p>{t.loading}</p>
         </main>
       </div>
     );
@@ -65,7 +65,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-slate-50">
         <Header />
         <main className="container mx-auto px-4 py-8">
-          <p>Konstrukcja nie znaleziona</p>
+          <p>{t.constructionNotFound}</p>
         </main>
       </div>
     );
@@ -90,7 +90,7 @@ export default function DashboardPage() {
             onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash2 className="size-4 mr-2" />
-            Usuń konstrukcję
+            {t.deleteConstruction}
           </Button>
         </div>
         <ConstructionDashboard
@@ -105,18 +105,18 @@ export default function DashboardPage() {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Czy na pewno chcesz usunąć konstrukcję?</AlertDialogTitle>
+              <AlertDialogTitle>{t.deleteConstructionConfirm}</AlertDialogTitle>
               <AlertDialogDescription>
-                Ta operacja jest nieodwracalna. Wszystkie dane związane z konstrukcją "{construction.name}" zostaną trwale usunięte.
+                {t.deleteConstructionConfirmDesc} ({construction.name})
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Anuluj</AlertDialogCancel>
+              <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteConstruction}
                 className="bg-red-600 hover:bg-red-700"
               >
-                Usuń
+                {t.delete}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -96,27 +96,27 @@ export function CategoriesManager() {
         <div className="flex items-center justify-end">
           <Button onClick={() => handleOpenDialog()}>
             <Plus className="size-4 mr-2" />
-            Dodaj kategorię
+            {t.addCategory}
           </Button>
         </div>
           {isLoading && (
             <div className="text-center py-12">
-              <p className="text-slate-600">Ładowanie kategorii...</p>
+              <p className="text-slate-600">{t.loadingCategories}</p>
             </div>
           )}
 
           {error && (
             <div className="text-center py-12">
-              <p className="text-red-600">Błąd podczas ładowania kategorii: {error.message}</p>
+              <p className="text-red-600">{t.errorLoadingCategories}: {error.message}</p>
             </div>
           )}
 
           {!isLoading && !error && categories.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-slate-600 mb-4">Brak kategorii</p>
+              <p className="text-slate-600 mb-4">{t.noCategories}</p>
               <Button onClick={() => handleOpenDialog()}>
                 <Plus className="size-4 mr-2" />
-                Dodaj pierwszą kategorię
+                {t.addFirstCategory}
               </Button>
             </div>
           )}
@@ -125,14 +125,14 @@ export function CategoriesManager() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nazwa kategorii</TableHead>
-                  <TableHead className="text-right">Akcje</TableHead>
+                  <TableHead>{t.categoryName}</TableHead>
+                  <TableHead className="text-right">{t.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {categories.map((category) => (
                   <TableRow key={category.category_id}>
-                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell className="font-medium max-w-[300px] truncate" title={category.name}>{category.name}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -162,35 +162,35 @@ export function CategoriesManager() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCategoryId ? 'Edytuj kategorię' : 'Dodaj kategorię'}
+              {editingCategoryId ? t.editCategory : t.addCategory}
             </DialogTitle>
             <DialogDescription>
               {editingCategoryId
-                ? 'Zaktualizuj nazwę kategorii'
-                : 'Wprowadź nazwę nowej kategorii'}
+                ? t.updateCategoryName
+                : t.enterNewCategoryName}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="category-name">Nazwa kategorii *</Label>
+              <Label htmlFor="category-name">{t.categoryName} *</Label>
               <Input
                 id="category-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ name: e.target.value })}
-                placeholder="np. Materiały podstawowe"
+                placeholder={t.categoryPlaceholder}
                 required
               />
             </div>
             <div className="flex gap-3 pt-4">
               <Button type="submit" className="flex-1" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingCategoryId ? 'Zapisz zmiany' : 'Dodaj kategorię'}
+                {editingCategoryId ? t.saveChanges : t.addCategory}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCloseDialog}
               >
-                Anuluj
+                {t.cancel}
               </Button>
             </div>
           </form>
@@ -200,19 +200,19 @@ export function CategoriesManager() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Czy na pewno chcesz usunąć kategorię?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteCategoryConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              Ta operacja jest nieodwracalna. Wszystkie materiały przypisane do tej kategorii mogą zostać bez kategorii.
+              {t.deleteCategoryConfirmDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setEditingCategoryId(null)}>Anuluj</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setEditingCategoryId(null)}>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
               disabled={deleteMutation.isPending}
             >
-              Usuń
+              {t.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

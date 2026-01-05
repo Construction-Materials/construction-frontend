@@ -82,7 +82,7 @@ export function DeliveryNoteImport({
           name: name,
           quantity: quantity,
           unit: unit,
-          category: 'Materiały podstawowe',
+          category: t.basicMaterials,
           description: ''
         });
       }
@@ -91,10 +91,10 @@ export function DeliveryNoteImport({
     return parsed.length > 0 ? parsed : [
       {
         id: `parsed-${Date.now()}-1`,
-        name: 'Przykładowy materiał 1',
+        name: `${t.sampleMaterial} 1`,
         quantity: 100,
         unit: 'szt.',
-        category: 'Materiały podstawowe',
+        category: t.basicMaterials,
         description: ''
       }
     ];
@@ -233,9 +233,9 @@ export function DeliveryNoteImport({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Import Delivery Note</CardTitle>
+        <CardTitle>{t.deliveryNoteTitle}</CardTitle>
         <CardDescription>
-          Wgraj plik PDF/zdjęcie lub wprowadź dane ręcznie. System automatycznie rozpozna materiały.
+          {t.deliveryNoteDesc}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -244,11 +244,11 @@ export function DeliveryNoteImport({
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upload">
                 <Upload className="size-4 mr-2" />
-                Wgraj plik
+                {t.uploadTab}
               </TabsTrigger>
               <TabsTrigger value="manual">
                 <FileText className="size-4 mr-2" />
-                Wprowadź ręcznie
+                {t.manualTab}
               </TabsTrigger>
             </TabsList>
 
@@ -256,7 +256,7 @@ export function DeliveryNoteImport({
               <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
                 <Upload className="size-12 text-slate-400 mx-auto mb-4" />
                 <p className="text-sm text-slate-600 mb-4">
-                  Przeciągnij i upuść plik lub kliknij aby wybrać
+                  {t.dragAndDrop}
                 </p>
                 <Input
                   type="file"
@@ -267,30 +267,30 @@ export function DeliveryNoteImport({
                 />
                 {selectedFile && (
                   <p className="text-sm text-slate-600 mt-4">
-                    Wybrany plik: {selectedFile.name}
+                    {t.selectedFile}: {selectedFile.name}
                   </p>
                 )}
               </div>
               {processing && (
                 <div className="flex items-center justify-center gap-2 text-slate-600">
                   <Loader2 className="size-5 animate-spin" />
-                  <span>Przetwarzanie dokumentu...</span>
+                  <span>{t.processingDocument}</span>
                 </div>
               )}
             </TabsContent>
 
             <TabsContent value="manual" className="space-y-4 mt-4">
               <div className="space-y-4">
-                <Label>Wprowadź dane z delivery note</Label>
+                <Label>{t.enterDeliveryNoteData}</Label>
                 <div className="border rounded-lg">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[300px]">Nazwa materiału</TableHead>
-                        <TableHead className="w-[120px]">Ilość</TableHead>
-                        <TableHead className="w-[120px]">Jednostka</TableHead>
-                        <TableHead className="w-[200px]">Kategoria</TableHead>
-                        <TableHead className="w-[150px] text-right">Akcje</TableHead>
+                        <TableHead className="w-[300px]">{t.materialName}</TableHead>
+                        <TableHead className="w-[120px]">{t.quantity}</TableHead>
+                        <TableHead className="w-[120px]">{t.unit}</TableHead>
+                        <TableHead className="w-[200px]">{t.category}</TableHead>
+                        <TableHead className="w-[150px] text-right">{t.actions}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -312,7 +312,7 @@ export function DeliveryNoteImport({
                               }}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Wybierz materiał" />
+                                <SelectValue placeholder={t.selectMaterialPlaceholder} />
                               </SelectTrigger>
                               <SelectContent>
                                 {materials.map(material => (
@@ -354,12 +354,12 @@ export function DeliveryNoteImport({
                               }}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Wybierz" />
+                                <SelectValue placeholder={t.selectPlaceholder} />
                               </SelectTrigger>
                               <SelectContent>
                                 {categories.length === 0 ? (
                                   <div className="px-2 py-6 text-center text-sm text-slate-500">
-                                    Brak kategorii
+                                    {t.noCategories}
                                   </div>
                                 ) : (
                                   categories.map(category => (
@@ -402,7 +402,7 @@ export function DeliveryNoteImport({
                   className="w-full"
                 >
                   <Plus className="size-4 mr-2" />
-                  Dodaj kolejny materiał
+                  {t.addAnotherMaterial}
                 </Button>
               </div>
               <Button
@@ -411,7 +411,7 @@ export function DeliveryNoteImport({
                 className="w-full"
               >
                 <CheckCircle2 className="size-4 mr-2" />
-                Przejdź do podsumowania ({manualMaterials.filter(row => row.name.trim() && row.quantity.trim() && row.unit.trim() && row.category.trim()).length})
+                {t.goToSummary} ({manualMaterials.filter(row => row.name.trim() && row.quantity.trim() && row.unit.trim() && row.category.trim()).length})
               </Button>
             </TabsContent>
           </Tabs>
@@ -419,13 +419,13 @@ export function DeliveryNoteImport({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium">Rozpoznane materiały ({parsedMaterials.length})</h3>
+                <h3 className="font-medium">{t.recognizedMaterials} ({parsedMaterials.length})</h3>
                 <p className="text-sm text-slate-600">
-                  Sprawdź i edytuj dane przed dodaniem do magazynu
+                  {t.reviewBeforeAdding}
                 </p>
               </div>
               <Button variant="outline" size="sm" onClick={handleReset}>
-                Rozpocznij od nowa
+                {t.startOver}
               </Button>
             </div>
 
@@ -433,10 +433,10 @@ export function DeliveryNoteImport({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[300px]">Nazwa materiału</TableHead>
-                    <TableHead className="w-[120px]">Ilość</TableHead>
-                    <TableHead className="w-[120px]">Jednostka</TableHead>
-                    <TableHead className="w-[200px]">Kategoria</TableHead>
+                    <TableHead className="w-[300px]">{t.materialName}</TableHead>
+                    <TableHead className="w-[120px]">{t.quantity}</TableHead>
+                    <TableHead className="w-[120px]">{t.unit}</TableHead>
+                    <TableHead className="w-[200px]">{t.category}</TableHead>
                     <TableHead className="w-[150px] text-right"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -463,7 +463,7 @@ export function DeliveryNoteImport({
                               }}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Wybierz materiał" />
+                                <SelectValue placeholder={t.selectMaterialPlaceholder} />
                               </SelectTrigger>
                               <SelectContent>
                                 {materials.map(material => (
@@ -500,7 +500,7 @@ export function DeliveryNoteImport({
                               <SelectContent>
                                 {categories.length === 0 ? (
                                   <div className="px-2 py-6 text-center text-sm text-slate-500">
-                                    Brak kategorii
+                                    {t.noCategories}
                                   </div>
                                 ) : (
                                   categories.map(category => (
@@ -522,17 +522,17 @@ export function DeliveryNoteImport({
                                 variant="ghost"
                                 onClick={() => setEditingId(null)}
                               >
-                                Anuluj
+                                {t.cancel}
                               </Button>
                             </div>
                           </TableCell>
                         </>
                       ) : (
                         <>
-                          <TableCell>{material.name}</TableCell>
+                          <TableCell className="max-w-[200px] truncate" title={material.name}>{material.name}</TableCell>
                           <TableCell>{material.quantity.toLocaleString('pl-PL')}</TableCell>
                           <TableCell>{material.unit}</TableCell>
-                          <TableCell>
+                          <TableCell className="max-w-[150px] truncate" title={material.category}>
                             <Badge variant="outline">{material.category}</Badge>
                           </TableCell>
                           <TableCell className="text-right">
@@ -568,7 +568,7 @@ export function DeliveryNoteImport({
                 size="lg"
               >
                 <Plus className="size-4 mr-2" />
-                Dodaj {parsedMaterials.length} materiał(ów) do magazynu
+                {t.addMaterialsToWarehouse} ({parsedMaterials.length})
               </Button>
             </div>
           </div>

@@ -41,13 +41,13 @@ export function MaterialsInventory({
         <CardContent>
           {isLoading && (
             <div className="text-center py-8">
-              <p className="text-slate-600">Ładowanie materiałów...</p>
+              <p className="text-slate-600">{t.loadingMaterials}</p>
             </div>
           )}
 
           {error && (
             <div className="text-center py-8">
-              <p className="text-red-600">Błąd podczas ładowania materiałów: {error.message}</p>
+              <p className="text-red-600">{t.errorLoadingMaterials}: {error.message}</p>
             </div>
           )}
 
@@ -71,13 +71,11 @@ export function MaterialsInventory({
               <TableBody>
                 {materials.map((material) => (
                   <TableRow key={material.material_id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{material.name}</div>
-                        {material.description && (
-                          <div className="text-sm text-slate-500">{material.description}</div>
-                        )}
-                      </div>
+                    <TableCell className="max-w-[250px]">
+                      <div className="font-medium truncate" title={material.name}>{material.name}</div>
+                      {material.description && (
+                        <div className="text-sm text-slate-500 truncate" title={material.description}>{material.description}</div>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{material.category_id}</Badge>

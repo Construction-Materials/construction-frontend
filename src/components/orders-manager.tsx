@@ -202,18 +202,16 @@ export function OrdersManager({
                 
                 return (
                   <TableRow key={order.id}>
-                    <TableCell>
-                      <div>
-                        <div>{material.name}</div>
-                        {order.notes && (
-                          <div className="text-sm text-slate-500">{order.notes}</div>
-                        )}
-                      </div>
+                    <TableCell className="max-w-[200px]">
+                      <div className="truncate" title={material.name}>{material.name}</div>
+                      {order.notes && (
+                        <div className="text-sm text-slate-500 truncate" title={order.notes}>{order.notes}</div>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       {order.quantity.toLocaleString(t.locale)} {material.unit}
                     </TableCell>
-                    <TableCell>{order.supplier || '-'}</TableCell>
+                    <TableCell className="max-w-[150px] truncate" title={order.supplier || ''}>{order.supplier || '-'}</TableCell>
                     <TableCell>
                       {new Date(order.orderDate).toLocaleDateString(t.locale)}
                     </TableCell>

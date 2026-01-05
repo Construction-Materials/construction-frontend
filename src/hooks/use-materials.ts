@@ -4,6 +4,7 @@ import {
   getMaterialById,
   getMaterialsByConstruction,
   getMaterialsByCategory,
+  createMaterial,
   updateMaterial,
   deleteMaterial,
   type MaterialsQueryParams,
@@ -63,6 +64,24 @@ export function useMaterialsByCategory(
     queryKey: materialKeys.byCategoryWithParams(categoryId, params),
     queryFn: () => getMaterialsByCategory(categoryId, params),
     enabled: !!categoryId,
+  });
+}
+
+// Hook do tworzenia materiału
+export function useCreateMaterial() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      category_id: string;
+      name: string;
+      description: string;
+      unit: string;
+    }) => createMaterial(data),
+    onSuccess: () => {
+      // Invalidate queries, aby odświeżyć listę
+      queryClient.invalidateQueries({ queryKey: materialKeys.lists() });
+    },
   });
 }
 

@@ -4,7 +4,7 @@ import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: "Construction Management App",
-  description: "Aplikacja do zarządzania budowami",
+  description: "Application for managing construction projects",
 };
 
 export default function RootLayout({

@@ -7,18 +7,32 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
-import { Category } from '@/types';
+import { useCreateMaterial } from '@/hooks/use-materials';
 
 export default function AddMaterialsPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { data: categoriesData } = useCategories();
   const categories = categoriesData?.categories || [];
+  const createMutation = useCreateMaterial();
 
-  const handleAddMaterials = (newMaterials: Array<{ name: string; unit: string; category: string; description: string }>) => {
-    // TODO: Implement via API - createMaterial
-    console.log('Add materials:', newMaterials);
-    router.push('/materials');
+  const handleAddMaterials = async (newMaterials: Array<{ name: string; unit: string; category: string; description: string }>) => {
+    try {
+      // Create all materials via API
+      await Promise.all(
+        newMaterials.map(material =>
+          createMutation.mutateAsync({
+            category_id: material.category,
+            name: material.name,
+            description: material.description || '',
+            unit: material.unit
+          })
+        )
+      );
+      router.push('/materials');
+    } catch (error) {
+      console.error('Failed to add materials:', error);
+    }
   };
 
   return (
@@ -38,6 +52,7 @@ export default function AddMaterialsPage() {
         <AddMaterialsForm
           onAddMaterials={handleAddMaterials}
           categories={categories}
+          isLoading={createMutation.isPending}
         />
       </main>
     </div>
