@@ -10,6 +10,7 @@ import { Input } from './ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Package, Search, Filter, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { TablePagination, usePagination } from './shared/TablePagination';
 import { EmptyState } from './shared/EmptyState';
 import { useMaterialsByConstruction } from '@/hooks/use-materials';
 import { useStorageItemsByConstruction } from '@/hooks/use-storage-items';
@@ -30,6 +31,7 @@ export function MaterialsInventory({
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const pagination = usePagination(10);
 
   const materials = materialsData?.materials || [];
   const storageItems = storageData?.storage_items || [];
@@ -66,11 +68,13 @@ export function MaterialsInventory({
       }
       return newSet;
     });
+    pagination.resetPage();
   };
 
   // Clear all category filters
   const clearCategoryFilters = () => {
     setSelectedCategories(new Set());
+    pagination.resetPage();
   };
 
   // Filter materials based on search query and selected categories
@@ -87,6 +91,15 @@ export function MaterialsInventory({
       return matchesSearch && matchesCategory;
     });
   }, [materials, searchQuery, selectedCategories]);
+
+  // Paginate filtered materials
+  const paginatedMaterials = pagination.paginateItems(filteredMaterials);
+
+  // Reset to first page when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    pagination.resetPage();
+  };
 
   return (
     <div className="space-y-4">
@@ -132,7 +145,7 @@ export function MaterialsInventory({
                   <Input
                     placeholder={t.searchMaterial}
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className="pl-9"
                   />
                 </div>
@@ -220,40 +233,50 @@ export function MaterialsInventory({
                   <p className="text-slate-600">{t.noMatchingMaterials}</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t.material}</TableHead>
-                      <TableHead>{t.category}</TableHead>
-                      <TableHead className="text-right">{t.quantity}</TableHead>
-                      <TableHead className="text-right">{t.unit}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredMaterials.map((material) => {
-                      const quantity = quantityMap.get(material.material_id) || '0';
-                      return (
-                        <TableRow key={material.material_id}>
-                          <TableCell className="max-w-[250px]">
-                            <div className="font-medium truncate" title={material.name}>{material.name}</div>
-                            {material.description && (
-                              <div className="text-sm text-slate-500 truncate" title={material.description}>{material.description}</div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{getCategoryName(material.category_id)}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            {quantity}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {material.unit}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t.material}</TableHead>
+                        <TableHead>{t.category}</TableHead>
+                        <TableHead className="text-right">{t.quantity}</TableHead>
+                        <TableHead className="text-right">{t.unit}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedMaterials.map((material) => {
+                        const quantity = quantityMap.get(material.material_id) || '0';
+                        return (
+                          <TableRow key={material.material_id}>
+                            <TableCell className="max-w-[250px]">
+                              <div className="font-medium truncate" title={material.name}>{material.name}</div>
+                              {material.description && (
+                                <div className="text-sm text-slate-500 truncate" title={material.description}>{material.description}</div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{getCategoryName(material.category_id)}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {quantity}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {material.unit}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+
+                  <TablePagination
+                    currentPage={pagination.currentPage}
+                    totalItems={filteredMaterials.length}
+                    pageSize={pagination.pageSize}
+                    onPageChange={pagination.handlePageChange}
+                    onPageSizeChange={pagination.handlePageSizeChange}
+                  />
+                </>
               )}
             </>
           )}

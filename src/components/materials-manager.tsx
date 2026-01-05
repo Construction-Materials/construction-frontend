@@ -26,6 +26,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
 import { useUpdateMaterial, useDeleteMaterial } from '@/hooks/use-materials';
 import { CategoriesManager } from './categories-manager';
+import { TablePagination, usePagination } from './shared/TablePagination';
 import { appConfig } from '../config/app-config';
 
 interface MaterialsManagerProps {
@@ -107,6 +108,10 @@ export function MaterialsManager({
   const { data: categoriesData } = useCategories();
   const categories = categoriesData?.categories || [];
   const { t } = useLanguage();
+  const pagination = usePagination(10);
+
+  // Paginate materials
+  const paginatedMaterials = pagination.paginateItems(materials);
 
   // Helper function to get category name by ID
   const getCategoryName = (categoryId: string) => {
@@ -164,51 +169,61 @@ export function MaterialsManager({
           )}
 
           {!isLoading && !error && materials.length > 0 && (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t.materialName}</TableHead>
-                  <TableHead>{t.category}</TableHead>
-                  <TableHead>{t.unit}</TableHead>
-                  <TableHead>{t.description}</TableHead>
-                  <TableHead className="text-right">{t.actions}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {materials.map((material) => (
-                  <TableRow key={material.material_id}>
-                    <TableCell className="max-w-[200px] truncate" title={material.name}>{material.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{getCategoryName(material.category_id)}</Badge>
-                    </TableCell>
-                    <TableCell>{material.unit}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      <span className="text-sm text-slate-600" title={material.description || ''}>
-                        {material.description || '-'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditDialog(material)}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openDeleteDialog(material.material_id)}
-                        >
-                          <Trash2 className="size-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t.materialName}</TableHead>
+                    <TableHead>{t.category}</TableHead>
+                    <TableHead>{t.unit}</TableHead>
+                    <TableHead>{t.description}</TableHead>
+                    <TableHead className="text-right">{t.actions}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedMaterials.map((material) => (
+                    <TableRow key={material.material_id}>
+                      <TableCell className="max-w-[200px] truncate" title={material.name}>{material.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{getCategoryName(material.category_id)}</Badge>
+                      </TableCell>
+                      <TableCell>{material.unit}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        <span className="text-sm text-slate-600" title={material.description || ''}>
+                          {material.description || '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEditDialog(material)}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDeleteDialog(material.material_id)}
+                          >
+                            <Trash2 className="size-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              <TablePagination
+                currentPage={pagination.currentPage}
+                totalItems={materials.length}
+                pageSize={pagination.pageSize}
+                onPageChange={pagination.handlePageChange}
+                onPageSizeChange={pagination.handlePageSizeChange}
+              />
+            </>
           )}
         </CardContent>
       </Card>

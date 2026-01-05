@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Languages, Tag } from 'lucide-react';
+import { Languages, Package, Tag } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -46,10 +46,11 @@ export function Header() {
               {pathname === '/' && (
                 <>
                   <Button variant="outline" onClick={() => setCategoriesDialogOpen(true)}>
-                    <Tag className="size-4 mr-2" />
+                    <Tag className="size-4"/>
                     {t.categories}
                   </Button>
                   <Button onClick={handleGoToMaterials} variant="outline">
+                    <Package className="size-4"/>
                     {t.materials}
                   </Button>
                 </>

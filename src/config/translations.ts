@@ -162,6 +162,7 @@ export const translations = {
     showingResults: 'Wyświetlane wyniki',
     of: 'z',
     noMatchingMaterials: 'Brak materiałów spełniających kryteria',
+    rowsPerPage: 'Wierszy na stronę',
 
     // Categories Manager
     noCategories: 'Brak kategorii',
@@ -363,6 +364,7 @@ export const translations = {
     showingResults: 'Showing results',
     of: 'of',
     noMatchingMaterials: 'No materials matching criteria',
+    rowsPerPage: 'Rows per page',
 
     // Categories Manager
     noCategories: 'No categories',
