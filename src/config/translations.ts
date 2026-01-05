@@ -155,6 +155,14 @@ export const translations = {
     saving: 'Zapisywanie...',
     noName: 'Brak nazwy',
 
+    // Filters
+    searchMaterial: 'Szukaj materiału...',
+    filterByCategory: 'Filtruj po kategorii',
+    clearAll: 'Wyczyść',
+    showingResults: 'Wyświetlane wyniki',
+    of: 'z',
+    noMatchingMaterials: 'Brak materiałów spełniających kryteria',
+
     // Categories Manager
     noCategories: 'Brak kategorii',
     addCategory: 'Dodaj kategorię',
@@ -347,6 +355,14 @@ export const translations = {
     errorLoadingConstructions: 'Error loading constructions',
     saving: 'Saving...',
     noName: 'No name',
+
+    // Filters
+    searchMaterial: 'Search material...',
+    filterByCategory: 'Filter by category',
+    clearAll: 'Clear all',
+    showingResults: 'Showing results',
+    of: 'of',
+    noMatchingMaterials: 'No materials matching criteria',
 
     // Categories Manager
     noCategories: 'No categories',

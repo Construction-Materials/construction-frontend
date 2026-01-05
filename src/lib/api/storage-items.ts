@@ -1,0 +1,105 @@
+import { StorageItem } from '@/types';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+export interface StorageItemsResponse {
+  storage_items: StorageItem[];
+  total: number;
+  page: number;
+  size: number;
+}
+
+export interface StorageItemsQueryParams {
+  page?: number;
+  size?: number;
+}
+
+export async function getStorageItemsByConstruction(
+  constructionId: string,
+  params?: StorageItemsQueryParams
+): Promise<StorageItemsResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.page !== undefined) searchParams.append('page', params.page.toString());
+  if (params?.size !== undefined) searchParams.append('size', params.size.toString());
+
+  const url = `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch storage items: ${response.statusText}`);
+  }
+
+  const data = await response.json() as StorageItemsResponse;
+  return data;
+}
+
+export async function getStorageItem(
+  constructionId: string,
+  materialId: string
+): Promise<StorageItem> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/material/${materialId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch storage item: ${response.statusText}`);
+  }
+
+  const data = await response.json() as StorageItem;
+  return data;
+}
+
+export async function updateStorageItem(
+  constructionId: string,
+  materialId: string,
+  data: { quantity_value: string }
+): Promise<StorageItem> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/material/${materialId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to update storage item: ${response.statusText}`);
+  }
+
+  const result = await response.json() as StorageItem;
+  return result;
+}
+
+export async function deleteStorageItem(
+  constructionId: string,
+  materialId: string
+): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/material/${materialId}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete storage item: ${response.statusText}`);
+  }
+}
