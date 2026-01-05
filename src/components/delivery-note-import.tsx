@@ -1,17 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Construction, Material } from '@/types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
-import { Upload, FileText, Plus, Pencil, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
-import { appConfig } from '../config/app-config';
+import { Upload, FileText, Plus, Pencil, Trash2, CheckCircle2, Loader2, ChevronsUpDown, Check, X } from 'lucide-react';
+import { cn } from './ui/utils';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
 
@@ -57,6 +58,10 @@ export function DeliveryNoteImport({
   const [manualMaterials, setManualMaterials] = useState<ManualMaterialRow[]>([
     { name: '', quantity: '', unit: '', category: '' }
   ]);
+  const [openComboboxIndex, setOpenComboboxIndex] = useState<number | null>(null);
+  const [editComboboxOpen, setEditComboboxOpen] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { t } = useLanguage();
 
@@ -100,11 +105,13 @@ export function DeliveryNoteImport({
     ];
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const selectFile = (file: File) => {
     setSelectedFile(file);
+  };
+
+  const processFile = async () => {
+    if (!selectedFile) return;
+
     setProcessing(true);
 
     try {
@@ -117,7 +124,7 @@ export function DeliveryNoteImport({
         Styropian 50 m²
         Rury PCV 100 m
       `;
-      
+
       const parsed = await mockLLMParse(mockText);
       setParsedMaterials(parsed);
     } catch (error) {
@@ -125,6 +132,46 @@ export function DeliveryNoteImport({
     } finally {
       setProcessing(false);
     }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    selectFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
+      selectFile(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDropZoneClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleManualSubmit = () => {
@@ -259,28 +306,80 @@ export function DeliveryNoteImport({
             </TabsList>
 
             <TabsContent value="upload" className="space-y-4 mt-4">
-              <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
-                <Upload className="size-12 text-slate-400 mx-auto mb-4" />
-                <p className="text-sm text-slate-600 mb-4">
-                  {t.dragAndDrop}
-                </p>
-                <Input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleFileUpload}
-                  className="max-w-xs mx-auto"
-                  disabled={processing}
-                />
-                {selectedFile && (
-                  <p className="text-sm text-slate-600 mt-4">
-                    {t.selectedFile}: {selectedFile.name}
+              {!selectedFile ? (
+                <div
+                  className={cn(
+                    "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                    isDragOver
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  )}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={handleDropZoneClick}
+                >
+                  <Upload className={cn(
+                    "size-12 mx-auto mb-4",
+                    isDragOver ? "text-blue-500" : "text-slate-400"
+                  )} />
+                  <p className="text-sm text-slate-600 mb-2">
+                    {t.dragAndDrop}
                   </p>
-                )}
-              </div>
-              {processing && (
-                <div className="flex items-center justify-center gap-2 text-slate-600">
-                  <Loader2 className="size-5 animate-spin" />
-                  <span>{t.processingDocument}</span>
+                  <p className="text-xs text-slate-400">
+                    PDF, PNG, JPG
+                  </p>
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    disabled={processing}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="border-2 border-solid border-slate-200 rounded-lg p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-slate-100 rounded-lg">
+                          <FileText className="size-6 text-slate-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900">{selectedFile.name}</p>
+                          <p className="text-xs text-slate-500">
+                            {(selectedFile.size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemoveFile}
+                        disabled={processing}
+                      >
+                        <X className="size-4 text-slate-500" />
+                      </Button>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={processFile}
+                    disabled={processing}
+                    className="w-full"
+                  >
+                    {processing ? (
+                      <>
+                        <Loader2 className="size-4 mr-2 animate-spin" />
+                        {t.processingDocument}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="size-4 mr-2" />
+                        {t.uploadFile}
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </TabsContent>
@@ -303,31 +402,56 @@ export function DeliveryNoteImport({
                       {manualMaterials.map((row, index) => (
                         <TableRow key={index}>
                           <TableCell>
-                            <Select
-                              value={row.name}
-                              onValueChange={(value) => {
-                                const newRows = [...manualMaterials];
-                                newRows[index].name = value;
-                                // Auto-fill unit and category if material exists
-                                const selectedMaterial = materials.find(m => m.name === value);
-                                if (selectedMaterial) {
-                                  newRows[index].unit = selectedMaterial.unit;
-                                  newRows[index].category = selectedMaterial.category_id;
-                                }
-                                setManualMaterials(newRows);
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder={t.selectMaterialPlaceholder} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {materials.map(material => (
-                                  <SelectItem key={material.material_id} value={material.name}>
-                                    {material.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <Popover open={openComboboxIndex === index} onOpenChange={(open) => setOpenComboboxIndex(open ? index : null)}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={openComboboxIndex === index}
+                                  className="w-full justify-between font-normal"
+                                >
+                                  <span className="truncate">
+                                    {row.name || t.selectMaterialPlaceholder}
+                                  </span>
+                                  <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[300px] p-0" align="start" sideOffset={4}>
+                                <Command>
+                                  <CommandInput placeholder={t.searchMaterials} />
+                                  <CommandList className="h-[200px]">
+                                    <CommandEmpty>{t.noMatchingMaterials}</CommandEmpty>
+                                    <CommandGroup>
+                                      {materials.map((material) => (
+                                        <CommandItem
+                                          key={material.material_id}
+                                          value={material.name}
+                                          onSelect={(value) => {
+                                            const selectedMaterial = materials.find(m => m.name.toLowerCase() === value.toLowerCase());
+                                            if (selectedMaterial) {
+                                              const newRows = [...manualMaterials];
+                                              newRows[index].name = selectedMaterial.name;
+                                              newRows[index].unit = selectedMaterial.unit;
+                                              newRows[index].category = selectedMaterial.category_id;
+                                              setManualMaterials(newRows);
+                                            }
+                                            setOpenComboboxIndex(null);
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 size-4",
+                                              row.name === material.name ? "opacity-100" : "opacity-0"
+                                            )}
+                                          />
+                                          {material.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </TableCell>
                           <TableCell>
                             <Input
@@ -433,33 +557,57 @@ export function DeliveryNoteImport({
                       {editingId === material.id ? (
                         <>
                           <TableCell>
-                            <Select
-                              value={editForm.name}
-                              onValueChange={(value) => {
-                                setEditForm({ ...editForm, name: value });
-                                // Auto-fill unit and category if material exists
-                                const selectedMaterial = materials.find(m => m.name === value);
-                                if (selectedMaterial) {
-                                  setEditForm({
-                                    ...editForm,
-                                    name: value,
-                                    unit: selectedMaterial.unit,
-                                    category: selectedMaterial.category_id
-                                  });
-                                }
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder={t.selectMaterialPlaceholder} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {materials.map(material => (
-                                  <SelectItem key={material.material_id} value={material.name}>
-                                    {material.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <Popover open={editComboboxOpen} onOpenChange={setEditComboboxOpen}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={editComboboxOpen}
+                                  className="w-full justify-between font-normal"
+                                >
+                                  <span className="truncate">
+                                    {editForm.name || t.selectMaterialPlaceholder}
+                                  </span>
+                                  <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[300px] p-0" align="start" sideOffset={4}>
+                                <Command>
+                                  <CommandInput placeholder={t.searchMaterials} />
+                                  <CommandList className="h-[200px]">
+                                    <CommandEmpty>{t.noMatchingMaterials}</CommandEmpty>
+                                    <CommandGroup>
+                                      {materials.map((mat) => (
+                                        <CommandItem
+                                          key={mat.material_id}
+                                          value={mat.name}
+                                          onSelect={(value) => {
+                                            const selectedMaterial = materials.find(m => m.name.toLowerCase() === value.toLowerCase());
+                                            if (selectedMaterial) {
+                                              setEditForm({
+                                                ...editForm,
+                                                name: selectedMaterial.name,
+                                                unit: selectedMaterial.unit,
+                                                category: selectedMaterial.category_id
+                                              });
+                                            }
+                                            setEditComboboxOpen(false);
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 size-4",
+                                              editForm.name === mat.name ? "opacity-100" : "opacity-0"
+                                            )}
+                                          />
+                                          {mat.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </TableCell>
                           <TableCell>
                             <Input
