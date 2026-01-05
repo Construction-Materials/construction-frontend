@@ -230,6 +230,12 @@ export function DeliveryNoteImport({
   const { data: categoriesData } = useCategories();
   const categories = categoriesData?.categories || [];
 
+  // Helper function to get category name by ID
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find(c => c.category_id === categoryId);
+    return category?.name || '';
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -326,7 +332,7 @@ export function DeliveryNoteImport({
                           <TableCell>
                             <Input
                               type="number"
-                              step="0.01"
+                              step="1"
                               value={row.quantity}
                               onChange={(e) => {
                                 const newRows = [...manualMaterials];
@@ -345,34 +351,15 @@ export function DeliveryNoteImport({
                             />
                           </TableCell>
                           <TableCell>
-                            <Select
-                              value={row.category}
-                              onValueChange={(value) => {
-                                const newRows = [...manualMaterials];
-                                newRows[index].category = value;
-                                setManualMaterials(newRows);
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder={t.selectPlaceholder} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {categories.length === 0 ? (
-                                  <div className="px-2 py-6 text-center text-sm text-slate-500">
-                                    {t.noCategories}
-                                  </div>
-                                ) : (
-                                  categories.map(category => (
-                                    <SelectItem key={category.category_id} value={category.category_id}>
-                                      {category.name}
-                                    </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-                            </Select>
+                            <Input
+                              value={getCategoryName(row.category)}
+                              disabled
+                              placeholder="Auto"
+                              className="bg-slate-50"
+                            />
                           </TableCell>
                           <TableCell className="text-right">
-                            {manualMaterials.length > 1 && (
+                            {manualMaterials.length > 0 && (
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -490,27 +477,11 @@ export function DeliveryNoteImport({
                             />
                           </TableCell>
                           <TableCell>
-                            <Select
-                              value={editForm.category}
-                              onValueChange={(value) => setEditForm({ ...editForm, category: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {categories.length === 0 ? (
-                                  <div className="px-2 py-6 text-center text-sm text-slate-500">
-                                    {t.noCategories}
-                                  </div>
-                                ) : (
-                                  categories.map(category => (
-                                    <SelectItem key={category.category_id} value={category.category_id}>
-                                      {category.name}
-                                    </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-                            </Select>
+                            <Input
+                              value={getCategoryName(editForm.category)}
+                              disabled
+                              className="bg-slate-50"
+                            />
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex gap-1 justify-end">
@@ -532,8 +503,8 @@ export function DeliveryNoteImport({
                           <TableCell className="max-w-[200px] truncate" title={material.name}>{material.name}</TableCell>
                           <TableCell>{material.quantity.toLocaleString('pl-PL')}</TableCell>
                           <TableCell>{material.unit}</TableCell>
-                          <TableCell className="max-w-[150px] truncate" title={material.category}>
-                            <Badge variant="outline">{material.category}</Badge>
+                          <TableCell className="max-w-[150px] truncate" title={getCategoryName(material.category)}>
+                            <Badge variant="outline">{getCategoryName(material.category)}</Badge>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex gap-1 justify-end">
