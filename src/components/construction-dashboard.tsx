@@ -54,15 +54,15 @@ export function ConstructionDashboard({
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full max-w-2xl grid-cols-3 mx-auto">
+        <TabsList className="grid w-full max-w-2xl grid-cols-2 mx-auto">
           <TabsTrigger value="inventory">
             <Package className="size-4 mr-2" />
             {t.warehouse}
           </TabsTrigger>
-          <TabsTrigger value="orders">
+          {/* <TabsTrigger value="orders">
             <ClipboardList className="size-4 mr-2" />
             {t.orders}
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger value="import">
             <Upload className="size-4 mr-2" />
             {t.importDeliveryNote}
@@ -76,7 +76,7 @@ export function ConstructionDashboard({
           />
         </TabsContent>
 
-        <TabsContent value="orders" className="mt-6">
+        {/* <TabsContent value="orders" className="mt-6">
           <OrdersManager
             constructionId={construction.construction_id}
             materials={materials}
@@ -85,7 +85,7 @@ export function ConstructionDashboard({
             onUpdateOrder={onUpdateOrder}
             onGoToDeliveryNoteImport={() => setActiveTab('import')}
           />
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="import" className="mt-6">
           <DeliveryNoteImport
