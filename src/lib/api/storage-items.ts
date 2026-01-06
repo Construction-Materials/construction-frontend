@@ -103,3 +103,32 @@ export async function deleteStorageItem(
     throw new Error(`Failed to delete storage item: ${response.statusText}`);
   }
 }
+
+export interface BulkStorageItemInput {
+  construction_id: string;
+  material_id: string;
+  quantity_value: number;
+}
+
+export async function bulkCreateStorageItems(
+  constructionId: string,
+  items: BulkStorageItemInput[]
+): Promise<StorageItem[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/bulk`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(items),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to bulk create storage items: ${response.statusText}`);
+  }
+
+  const data = await response.json() as StorageItem[];
+  return data;
+}

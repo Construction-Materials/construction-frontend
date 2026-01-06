@@ -217,7 +217,7 @@ function AppContent() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <img src={logo} alt="ElectraM&E" className="h-10" />
+            <img src={logo.src} alt="ElectraM&E" className="h-10" />
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"

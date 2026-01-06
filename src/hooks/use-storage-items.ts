@@ -4,7 +4,9 @@ import {
   getStorageItem,
   updateStorageItem,
   deleteStorageItem,
+  bulkCreateStorageItems,
   type StorageItemsQueryParams,
+  type BulkStorageItemInput,
 } from '@/lib/api/storage-items';
 
 export const storageItemKeys = {
@@ -71,6 +73,25 @@ export function useDeleteStorageItem() {
       constructionId: string;
       materialId: string;
     }) => deleteStorageItem(constructionId, materialId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: storageItemKeys.byConstruction(variables.constructionId),
+      });
+    },
+  });
+}
+
+export function useBulkCreateStorageItems() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      constructionId,
+      items,
+    }: {
+      constructionId: string;
+      items: BulkStorageItemInput[];
+    }) => bulkCreateStorageItems(constructionId, items),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: storageItemKeys.byConstruction(variables.constructionId),

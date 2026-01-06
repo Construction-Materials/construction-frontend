@@ -155,8 +155,12 @@ export const translations = {
     errorLoadingMaterials: 'Błąd podczas ładowania materiałów',
     errorLoadingCategories: 'Błąd podczas ładowania kategorii',
     errorLoadingConstructions: 'Błąd podczas ładowania budów',
+    errorProcessingDocument: 'Błąd podczas przetwarzania dokumentu',
+    errorAddingMaterials: 'Błąd podczas dodawania materiałów do magazynu',
+    noValidMaterialsToAdd: 'Brak materiałów do dodania. Wybierz istniejące materiały z listy.',
     saving: 'Zapisywanie...',
     noName: 'Brak nazwy',
+    fillAllRequiredFields: 'Proszę wypełnić wszystkie wymagane pola',
 
     // Filters
     searchMaterial: 'Szukaj materiału...',
@@ -357,11 +361,15 @@ export const translations = {
     loading: 'Loading...',
     loadingMaterials: 'Loading materials...',
     loadingCategories: 'Loading categories...',
-    errorLoadingMaterials: 'Error loading materials',
     errorLoadingCategories: 'Error loading categories',
     errorLoadingConstructions: 'Error loading constructions',
+    errorLoadingMaterials: 'Error loading materials',
+    errorProcessingDocument: 'Error processing document',
+    errorAddingMaterials: 'Error adding materials to inventory',
+    noValidMaterialsToAdd: 'No valid materials to add. Please select existing materials from the list.',
     saving: 'Saving...',
     noName: 'No name',
+    fillAllRequiredFields: 'Please fill in all required fields',
 
     // Filters
     searchMaterial: 'Search material...',

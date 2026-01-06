@@ -11,10 +11,13 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
-import { Upload, FileText, Plus, Pencil, Trash2, CheckCircle2, Loader2, ChevronsUpDown, Check, X } from 'lucide-react';
+import { Upload, FileText, Plus, Pencil, Trash2, CheckCircle2, Loader2, ChevronsUpDown, Check, X, AlertCircle } from 'lucide-react';
 import { cn } from './ui/utils';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
+import { useBulkCreateStorageItems } from '@/hooks/use-storage-items';
+import { analyzeDocument, ExtractedMaterial } from '@/lib/api/documents';
+import type { BulkStorageItemInput } from '@/lib/api/storage-items';
 
 interface DeliveryNoteImportProps {
   construction: Construction;
@@ -30,6 +33,18 @@ interface ParsedMaterial {
   unit: string;
   category: string;
   description?: string;
+  // Fields from API response
+  material_id: string | null;
+  material_exists: boolean;
+  material_unit: string | null;
+  unit_matches: boolean;
+  can_use_quantity: boolean;
+  suggested_materials: Array<{
+    material_id: string;
+    name: string;
+    unit: string;
+    similarity_score: number;
+  }>;
 }
 
 interface ManualMaterialRow {
@@ -61,49 +76,12 @@ export function DeliveryNoteImport({
   const [openComboboxIndex, setOpenComboboxIndex] = useState<number | null>(null);
   const [editComboboxOpen, setEditComboboxOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { t } = useLanguage();
-
-  // Mock LLM function to simulate parsing delivery note
-  const mockLLMParse = async (text: string): Promise<ParsedMaterial[]> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Mock parsing logic - in real app this would be LLM API call
-    const lines = text.split('\n').filter(line => line.trim());
-    const parsed: ParsedMaterial[] = [];
-
-    // Simple pattern matching for demo purposes
-    lines.forEach((line, index) => {
-      const quantityMatch = line.match(/(\d+[,.]?\d*)\s*(szt\.|kg|t|m²|m³|m|l|opak\.|worek|paleta)/i);
-      if (quantityMatch) {
-        const quantity = parseFloat(quantityMatch[1].replace(',', '.'));
-        const unit = quantityMatch[2];
-        const name = line.replace(quantityMatch[0], '').trim().split(/\s{2,}/)[0] || `Materiał ${index + 1}`;
-        
-        parsed.push({
-          id: `parsed-${Date.now()}-${index}`,
-          name: name,
-          quantity: quantity,
-          unit: unit,
-          category: t.basicMaterials,
-          description: ''
-        });
-      }
-    });
-
-    return parsed.length > 0 ? parsed : [
-      {
-        id: `parsed-${Date.now()}-1`,
-        name: `${t.sampleMaterial} 1`,
-        quantity: 100,
-        unit: 'szt.',
-        category: t.basicMaterials,
-        description: ''
-      }
-    ];
-  };
+  const bulkCreateMutation = useBulkCreateStorageItems();
 
   const selectFile = (file: File) => {
     setSelectedFile(file);
@@ -113,22 +91,30 @@ export function DeliveryNoteImport({
     if (!selectedFile) return;
 
     setProcessing(true);
+    setError(null);
 
     try {
-      // In real app, this would extract text from PDF/image using OCR
-      // For demo, we'll use mock text
-      const mockText = `
-        Cement portlandzki 500 kg
-        Cegła ceramiczna 2000 szt.
-        Piasek 5 t
-        Styropian 50 m²
-        Rury PCV 100 m
-      `;
+      const response = await analyzeDocument(construction.construction_id, selectedFile);
 
-      const parsed = await mockLLMParse(mockText);
+      const parsed: ParsedMaterial[] = response.extracted_data.materials.map((material, index) => ({
+        id: `parsed-${Date.now()}-${index}`,
+        name: material.name,
+        quantity: material.quantity,
+        unit: material.unit,
+        category: '', // Will be set when user selects a material
+        description: '',
+        material_id: material.material_id,
+        material_exists: material.material_exists,
+        material_unit: material.material_unit,
+        unit_matches: material.unit_matches,
+        can_use_quantity: material.can_use_quantity,
+        suggested_materials: material.suggested_materials,
+      }));
+
       setParsedMaterials(parsed);
-    } catch (error) {
-      console.error('Error processing file:', error);
+    } catch (err) {
+      console.error('Error processing file:', err);
+      setError(err instanceof Error ? err.message : t.errorProcessingDocument || 'Error processing document');
     } finally {
       setProcessing(false);
     }
@@ -165,6 +151,7 @@ export function DeliveryNoteImport({
 
   const handleRemoveFile = () => {
     setSelectedFile(null);
+    setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -182,14 +169,23 @@ export function DeliveryNoteImport({
 
     if (validManualMaterials.length === 0) return;
 
-    const parsed: ParsedMaterial[] = validManualMaterials.map((row, index) => ({
-      id: `manual-${Date.now()}-${index}`,
-      name: row.name,
-      quantity: parseFloat(row.quantity),
-      unit: row.unit,
-      category: row.category,
-      description: ''
-    }));
+    const parsed: ParsedMaterial[] = validManualMaterials.map((row, index) => {
+      const existingMaterial = materials.find(m => m.name.toLowerCase() === row.name.toLowerCase());
+      return {
+        id: `manual-${Date.now()}-${index}`,
+        name: row.name,
+        quantity: parseFloat(row.quantity),
+        unit: row.unit,
+        category: row.category,
+        description: '',
+        material_id: existingMaterial?.material_id || null,
+        material_exists: !!existingMaterial,
+        material_unit: existingMaterial?.unit || null,
+        unit_matches: existingMaterial?.unit === row.unit,
+        can_use_quantity: true,
+        suggested_materials: [],
+      };
+    });
 
     setParsedMaterials(parsed);
   };
@@ -223,47 +219,42 @@ export function DeliveryNoteImport({
     setParsedMaterials(parsedMaterials.filter(m => m.id !== id));
   };
 
-  const handleAddToInventory = () => {
-    // First, collect new materials that don't exist yet
-    const newMaterials: Material[] = [];
-    // TODO: Materials are now managed via API endpoint /api/v1/materials/by-construction/{construction_id}
-    // This function needs to be refactored to use API
+  const handleAddToInventory = async () => {
+    // Filter only materials that have a valid material_id
+    const validItems = parsedMaterials.filter(pm => pm.material_id !== null);
 
-    parsedMaterials.forEach(pm => {
-      // Check if material already exists in global materials
-      let existingMaterial = materials.find(m => 
-        m.name.toLowerCase() === pm.name.toLowerCase()
-      );
+    if (validItems.length === 0) {
+      setError(t.noValidMaterialsToAdd || 'No valid materials to add. Please select existing materials.');
+      return;
+    }
 
-      let materialId: string;
+    setSaving(true);
+    setError(null);
 
-      if (!existingMaterial) {
-        // Create new material
-        materialId = `material-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        newMaterials.push({
-          material_id: materialId,
-          category_id: pm.category, // W przyszłości może być mapowanie na category_id
-          name: pm.name,
-          unit: pm.unit,
-          description: pm.description || '',
-          created_at: new Date().toISOString()
-        });
-      } else {
-        materialId = existingMaterial.material_id;
-      }
+    try {
+      const bulkItems: BulkStorageItemInput[] = validItems.map(pm => ({
+        construction_id: construction.construction_id,
+        material_id: pm.material_id!,
+        quantity_value: pm.quantity,
+      }));
 
-      // TODO: Check if material already exists in construction inventory via API
-    });
+      await bulkCreateMutation.mutateAsync({
+        constructionId: construction.construction_id,
+        items: bulkItems,
+      });
 
-    // TODO: Add new materials via API
-    // newMaterials.forEach(material => createMaterial(material));
-
-    // Reset state
-    setParsedMaterials([]);
-    setSelectedFile(null);
-    setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
-    setEditingId(null);
-    onComplete();
+      // Reset state
+      setParsedMaterials([]);
+      setSelectedFile(null);
+      setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
+      setEditingId(null);
+      onComplete();
+    } catch (err) {
+      console.error('Failed to add materials to inventory:', err);
+      setError(err instanceof Error ? err.message : t.errorAddingMaterials || 'Error adding materials to inventory');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleReset = () => {
@@ -363,6 +354,12 @@ export function DeliveryNoteImport({
                       </Button>
                     </div>
                   </div>
+                  {error && (
+                    <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                      <AlertCircle className="size-4 text-red-600 flex-shrink-0" />
+                      <p className="text-sm text-red-600">{error}</p>
+                    </div>
+                  )}
                   <Button
                     onClick={processFile}
                     disabled={processing}
@@ -376,7 +373,7 @@ export function DeliveryNoteImport({
                     ) : (
                       <>
                         <Upload className="size-4 mr-2" />
-                        {t.uploadFile}
+                        {t.processWithAI}
                       </>
                     )}
                   </Button>
@@ -680,14 +677,31 @@ export function DeliveryNoteImport({
               </Table>
             </div>
 
+            {error && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                <AlertCircle className="size-4 text-red-600 flex-shrink-0" />
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
             <div className="flex gap-3 pt-4 border-t">
               <Button
                 onClick={handleAddToInventory}
                 className="flex-1"
                 size="lg"
+                disabled={saving || parsedMaterials.filter(pm => pm.material_id !== null).length === 0}
               >
-                <Plus className="size-4 mr-2" />
-                {t.addMaterialsToWarehouse} ({parsedMaterials.length})
+                {saving ? (
+                  <>
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    {t.saving}
+                  </>
+                ) : (
+                  <>
+                    <Plus className="size-4 mr-2" />
+                    {t.addMaterialsToWarehouse} ({parsedMaterials.filter(pm => pm.material_id !== null).length})
+                  </>
+                )}
               </Button>
             </div>
           </div>

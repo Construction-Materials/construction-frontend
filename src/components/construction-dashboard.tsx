@@ -17,7 +17,7 @@ import { DeliveryNoteImport } from './delivery-note-import';
 import { useLanguage } from '../contexts/LanguageContext';
 import { StatusBadge } from './shared/StatusBadge';
 import { ConstructionInfo } from './shared/ConstructionInfo';
-import { useUpdateConstruction } from '@/hooks/use-constructions';
+import { useUpdateConstruction } from '@/hooks/use-constructions';  
 import { appConfig } from '../config/app-config';
 
 interface ConstructionDashboardProps {
@@ -43,7 +43,7 @@ export function ConstructionDashboard({
     name: construction.name,
     description: construction.description || '',
     address: construction.address,
-    start_date: construction.start_date.split('T')[0],
+    start_date: construction.start_date?.split('T')[0] || '',
     status: construction.status
   });
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export function ConstructionDashboard({
       name: construction.name,
       description: construction.description || '',
       address: construction.address,
-      start_date: construction.start_date.split('T')[0],
+      start_date: construction.start_date?.split('T')[0] || '',
       status: construction.status
     });
     setValidationError(null);
@@ -152,18 +152,6 @@ export function ConstructionDashboard({
             onGoToDeliveryNoteImport={() => setActiveTab('import')}
           />
         </TabsContent>
-
-        {/* <TabsContent value="orders" className="mt-6">
-          <OrdersManager
-            constructionId={construction.construction_id}
-            materials={materials}
-            orders={orders}
-            onAddOrder={onAddOrder}
-            onUpdateOrder={onUpdateOrder}
-            onGoToDeliveryNoteImport={() => setActiveTab('import')}
-          />
-        </TabsContent> */}
-
         <TabsContent value="import" className="mt-6">
           <DeliveryNoteImport
             construction={construction}
