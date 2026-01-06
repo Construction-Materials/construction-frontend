@@ -38,9 +38,26 @@ export function ConstructionList({
     status: 'planned' as Construction['status'],
     description: ''
   });
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const validateForm = () => {
+    if (!formData.name.trim()) return 'name';
+    if (!formData.address.trim()) return 'address';
+    if (!formData.start_date) return 'start_date';
+    if (!formData.status) return 'status';
+    return null;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const invalidField = validateForm();
+    if (invalidField) {
+      setValidationError(invalidField);
+      return;
+    }
+
+    setValidationError(null);
     try {
       await onAddConstruction(formData);
       setFormData({
@@ -56,6 +73,13 @@ export function ConstructionList({
     }
   };
 
+  const handleDialogChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setValidationError(null);
+    }
+  };
+
   const { t } = useLanguage();
 
   return (
@@ -65,7 +89,7 @@ export function ConstructionList({
           <h2>{t.constructions}</h2>
           <p className="text-slate-600">{t.manageAllConstructions}</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="size-4 mr-2" />
@@ -80,14 +104,22 @@ export function ConstructionList({
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className={`${appConfig.spacing.formSections} ${appConfig.spacing.headerMargin}`}>
+              {validationError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600">{t.fillAllRequiredFields}</p>
+                </div>
+              )}
               <div className={appConfig.spacing.formFields}>
                 <Label htmlFor="name">{t.constructionName} *</Label>
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (validationError === 'name') setValidationError(null);
+                  }}
                   placeholder={t.constructionNamePlaceholder}
-                  required
+                  className={validationError === 'name' ? 'border-red-500' : ''}
                 />
               </div>
               <div className={appConfig.spacing.formFields}>
@@ -95,9 +127,12 @@ export function ConstructionList({
                 <Input
                   id="address"
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, address: e.target.value });
+                    if (validationError === 'address') setValidationError(null);
+                  }}
                   placeholder={t.locationPlaceholder}
-                  required
+                  className={validationError === 'address' ? 'border-red-500' : ''}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -107,17 +142,23 @@ export function ConstructionList({
                     id="start_date"
                     type="date"
                     value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    required
+                    onChange={(e) => {
+                      setFormData({ ...formData, start_date: e.target.value });
+                      if (validationError === 'start_date') setValidationError(null);
+                    }}
+                    className={validationError === 'start_date' ? 'border-red-500' : ''}
                   />
                 </div>
                 <div className={appConfig.spacing.formFields}>
                   <Label htmlFor="status">{t.status} *</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) => setFormData({ ...formData, status: value as Construction['status'] })}
+                    onValueChange={(value) => {
+                      setFormData({ ...formData, status: value as Construction['status'] });
+                      if (validationError === 'status') setValidationError(null);
+                    }}
                   >
-                    <SelectTrigger id="status">
+                    <SelectTrigger id="status" className={validationError === 'status' ? 'border-red-500' : ''}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -145,7 +186,7 @@ export function ConstructionList({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setDialogOpen(false)}
+                  onClick={() => handleDialogChange(false)}
                 >
                   {t.cancel}
                 </Button>

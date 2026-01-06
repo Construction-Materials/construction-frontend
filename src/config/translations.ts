@@ -46,6 +46,9 @@ export const translations = {
     
     // Construction Dashboard
     constructionDetails: 'Szczegóły budowy',
+    editConstruction: 'Edytuj budowę',
+    editConstructionDesc: 'Zaktualizuj informacje o budowie',
+    address: 'Adres',
     warehouse: 'Magazyn',
     orders: 'Zamówienia',
     importDeliveryNote: 'Importuj notatkę dostawy',
@@ -248,6 +251,9 @@ export const translations = {
     
     // Construction Dashboard
     constructionDetails: 'Construction Details',
+    editConstruction: 'Edit Construction',
+    editConstructionDesc: 'Update construction information',
+    address: 'Address',
     warehouse: 'Warehouse',
     orders: 'Orders',
     importDeliveryNote: 'Import Delivery Note',
