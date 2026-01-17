@@ -3,6 +3,7 @@ export type Language = 'pl' | 'en';
 export const translations = {
   pl: {
     // Header
+    charts: 'Wykresy',
     manageMaterials: 'Zarządzaj materiałami',
     manageCategories: 'Zarządzaj kategoriami',
     categories: 'Kategorie',
@@ -213,6 +214,7 @@ export const translations = {
   },
   en: {
     // Header
+    charts: 'Charts',
     manageMaterials: 'Manage Materials',
     categories: 'Categories',
     materials: 'Materials',

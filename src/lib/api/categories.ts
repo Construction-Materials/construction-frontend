@@ -1,7 +1,5 @@
 import { Category } from '@/types';
 
-const API_BASE_URL = '';
-
 export interface CategoriesResponse {
   categories: Category[];
   total: number;
@@ -21,7 +19,7 @@ export async function getCategories(
   if (params?.page !== undefined) searchParams.append('page', params.page.toString());
   if (params?.size !== undefined) searchParams.append('size', params.size.toString());
 
-  const url = `${API_BASE_URL}/api/v1/categories${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+  const url = `/api/v1/categories${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
   
   const response = await fetch(url, {
     method: 'GET',
@@ -39,7 +37,7 @@ export async function getCategories(
 }
 
 export async function getCategoryById(id: string): Promise<Category> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/categories/${id}`, {
+  const response = await fetch(`/api/v1/categories/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -57,7 +55,7 @@ export async function getCategoryById(id: string): Promise<Category> {
 export async function createCategory(
   data: { name: string }
 ): Promise<Category> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/categories`, {
+  const response = await fetch(`/api/v1/categories`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -77,7 +75,7 @@ export async function updateCategory(
   id: string,
   data: { name: string }
 ): Promise<Category> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/categories/${id}`, {
+  const response = await fetch(`/api/v1/categories/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -94,7 +92,7 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/categories/${id}`, {
+  const response = await fetch(`/api/v1/categories/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

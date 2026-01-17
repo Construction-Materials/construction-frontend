@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Languages, Package, Tag } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,} from '@/components/ui/dialog';
+import { Languages, Package, Tag, Building2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -42,6 +42,10 @@ export function Header() {
                 <Languages className="size-4" />
                 <span className="hidden sm:inline">{language === 'pl' ? 'Polski' : 'English'}</span>
                 <span className="sm:hidden">{language === 'pl' ? 'PL' : 'EN'}</span>
+              </Button>
+              <Button onClick={() => window.location.href = 'http://127.0.0.1:8000/charts/ć'} variant="outline">
+                <Building2 className="size-4 mr-2" />
+                {t.charts}
               </Button>
               {pathname === '/' && (
                 <>
