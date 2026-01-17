@@ -1,6 +1,6 @@
 import { Construction } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = '';
 
 export interface ConstructionsResponse {
   constructions: Construction[];
@@ -57,7 +57,7 @@ export async function getConstructionById(id: string): Promise<Construction> {
 export async function createConstruction(
   data: Omit<Construction, 'construction_id' | 'created_at'>
 ): Promise<Construction> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/constructions/`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/constructions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -1,6 +1,6 @@
 import { Material } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = '';
 
 export interface MaterialsResponse {
   materials: Material[];
@@ -21,7 +21,7 @@ export async function getMaterials(
   if (params?.page !== undefined) searchParams.append('page', params.page.toString());
   if (params?.size !== undefined) searchParams.append('size', params.size.toString());
 
-  const url = `${API_BASE_URL}/api/v1/materials/${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+  const url = `${API_BASE_URL}/api/v1/materials${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
   
   const response = await fetch(url, {
     method: 'GET',
@@ -46,7 +46,7 @@ export async function createMaterial(
     unit: string;
   }
 ): Promise<Material> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/materials/`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/materials`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
