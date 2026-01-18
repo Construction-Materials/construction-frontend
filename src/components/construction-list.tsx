@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Construction } from '@/types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -9,11 +10,14 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Building2, MapPin, Calendar, Plus } from 'lucide-react';
+import { Badge } from './ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Building2, MapPin, Calendar, Plus, Search, Filter, X, RefreshCw } from 'lucide-react';
 import { appConfig } from '../config/app-config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { StatusBadge } from './shared/StatusBadge';
 import { EmptyState } from './shared/EmptyState';
+import { constructionKeys } from '@/hooks/use-constructions';
 
 interface ConstructionListProps {
   constructions: Construction[];
@@ -30,6 +34,7 @@ export function ConstructionList({
   onSelectConstruction,
   onAddConstruction
 }: ConstructionListProps) {
+  const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -39,6 +44,55 @@ export function ConstructionList({
     description: ''
   });
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<Construction['status']>>(new Set());
+  const [isReloading, setIsReloading] = useState(false);
+
+  // Available statuses for filtering
+  const statuses: Construction['status'][] = ['planned', 'active', 'completed'];
+
+  // Filter constructions based on search query and selected statuses
+  const filteredConstructions = useMemo(() => {
+    return constructions.filter((construction) => {
+      const matchesSearch = searchQuery === '' ||
+        construction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        construction.address.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesStatus = selectedStatuses.size === 0 ||
+        selectedStatuses.has(construction.status);
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [constructions, searchQuery, selectedStatuses]);
+
+  const hasFilters = searchQuery !== '' || selectedStatuses.size > 0;
+
+  // Toggle status selection
+  const toggleStatus = useCallback((status: Construction['status']) => {
+    setSelectedStatuses(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(status)) {
+        newSet.delete(status);
+      } else {
+        newSet.add(status);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Clear all status filters
+  const clearStatusFilters = useCallback(() => {
+    setSelectedStatuses(new Set());
+  }, []);
+
+  // Reload data
+  const handleReload = useCallback(async () => {
+    setIsReloading(true);
+    await queryClient.invalidateQueries({ queryKey: constructionKeys.all });
+    setIsReloading(false);
+  }, [queryClient]);
 
   const validateForm = () => {
     if (!formData.name.trim()) return 'name';
@@ -81,6 +135,16 @@ export function ConstructionList({
   };
 
   const { t } = useLanguage();
+
+  // Helper to get status label
+  const getStatusLabel = (status: Construction['status']) => {
+    switch (status) {
+      case 'planned': return t.statusPlanned;
+      case 'active': return t.statusActive;
+      case 'completed': return t.statusCompleted;
+      default: return status;
+    }
+  };
 
   return (
     <div>
@@ -196,6 +260,109 @@ export function ConstructionList({
         </Dialog>
       </div>
 
+      {/* Filters */}
+      {!isLoading && !error && constructions.length > 0 && (
+        <div className="space-y-3 mb-6">
+          <div className="flex flex-wrap gap-3">
+            {/* Search by name */}
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+              <Input
+                placeholder={t.searchConstruction}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            {/* Status filter */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Filter className="size-4" />
+                  {t.status}
+                  {selectedStatuses.size > 0 && (
+                    <Badge variant="secondary" className="ml-1">
+                      {selectedStatuses.size}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3" align="start">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{t.filterByStatus}</span>
+                    {selectedStatuses.size > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearStatusFilters}
+                        className="h-auto p-1 text-xs"
+                      >
+                        {t.clearAll}
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {statuses.map((status) => {
+                      const isSelected = selectedStatuses.has(status);
+                      return (
+                        <Badge
+                          key={status}
+                          variant={isSelected ? 'default' : 'outline'}
+                          className="cursor-pointer hover:bg-slate-100 transition-colors"
+                          onClick={() => toggleStatus(status)}
+                        >
+                          {getStatusLabel(status)}
+                          {isSelected && (
+                            <X className="size-3 ml-1" />
+                          )}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Reload button */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleReload}
+              disabled={isReloading}
+              title={t.reload}
+            >
+              <RefreshCw className={`size-4 ${isReloading ? 'animate-spin' : ''}`} />
+            </Button>
+
+            {/* Active status filters display */}
+            {selectedStatuses.size > 0 && (
+              <div className="flex flex-wrap gap-1 items-center">
+                {Array.from(selectedStatuses).map((status) => (
+                  <Badge
+                    key={status}
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() => toggleStatus(status)}
+                  >
+                    {getStatusLabel(status)}
+                    <X className="size-3 ml-1" />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Results count */}
+          {hasFilters && (
+            <p className="text-sm text-slate-500">
+              {t.showingResults}: {filteredConstructions.length} {t.of} {constructions.length}
+            </p>
+          )}
+        </div>
+      )}
+
       {isLoading && (
         <div className="text-center py-12">
           <p className="text-slate-600">{t.loading}</p>
@@ -208,9 +375,15 @@ export function ConstructionList({
         </div>
       )}
 
-      {!isLoading && !error && (
+      {!isLoading && !error && constructions.length > 0 && filteredConstructions.length === 0 && hasFilters && (
+        <div className="text-center py-12">
+          <p className="text-slate-600">{t.noMatchingConstructions}</p>
+        </div>
+      )}
+
+      {!isLoading && !error && filteredConstructions.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {constructions.map((construction) => (
+          {filteredConstructions.map((construction) => (
           <Card
             key={construction.construction_id}
             className="hover:shadow-md transition-shadow cursor-pointer"

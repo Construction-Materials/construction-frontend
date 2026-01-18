@@ -163,11 +163,15 @@ export const translations = {
 
     // Filters
     searchMaterial: 'Szukaj materiału...',
+    searchConstruction: 'Szukaj budowy...',
     filterByCategory: 'Filtruj po kategorii',
+    filterByStatus: 'Filtruj po statusie',
     clearAll: 'Wyczyść',
     showingResults: 'Wyświetlane wyniki',
     of: 'z',
     noMatchingMaterials: 'Brak materiałów spełniających kryteria',
+    noMatchingConstructions: 'Brak budów spełniających kryteria',
+    allStatuses: 'Wszystkie statusy',
     rowsPerPage: 'Wierszy na stronę',
     reload: 'Odśwież',
 
@@ -215,6 +219,7 @@ export const translations = {
     // Header
     charts: 'Charts',
     manageMaterials: 'Manage Materials',
+    manageCategories: 'Manage Categories',
     categories: 'Categories',
     materials: 'Materials',
     back: 'Back',
@@ -372,11 +377,15 @@ export const translations = {
 
     // Filters
     searchMaterial: 'Search material...',
+    searchConstruction: 'Search construction...',
     filterByCategory: 'Filter by category',
+    filterByStatus: 'Filter by status',
     clearAll: 'Clear all',
     showingResults: 'Showing results',
     of: 'of',
     noMatchingMaterials: 'No materials matching criteria',
+    noMatchingConstructions: 'No constructions matching criteria',
+    allStatuses: 'All statuses',
     rowsPerPage: 'Rows per page',
     reload: 'Reload',
 
