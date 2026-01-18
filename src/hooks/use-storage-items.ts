@@ -8,6 +8,7 @@ import {
   type StorageItemsQueryParams,
   type BulkStorageItemInput,
 } from '@/lib/api/storage-items';
+import { showSuccessNotification, showErrorNotification } from '@/lib/notifications';
 
 export const storageItemKeys = {
   all: ['storage-items'] as const,
@@ -58,6 +59,10 @@ export function useUpdateStorageItem() {
       queryClient.invalidateQueries({
         queryKey: storageItemKeys.item(variables.constructionId, variables.materialId),
       });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }
@@ -77,6 +82,10 @@ export function useDeleteStorageItem() {
       queryClient.invalidateQueries({
         queryKey: storageItemKeys.byConstruction(variables.constructionId),
       });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }
@@ -96,6 +105,10 @@ export function useBulkCreateStorageItems() {
       queryClient.invalidateQueries({
         queryKey: storageItemKeys.byConstruction(variables.constructionId),
       });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }

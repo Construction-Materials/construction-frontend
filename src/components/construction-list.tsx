@@ -96,6 +96,7 @@ export function ConstructionList({
 
   const validateForm = () => {
     if (!formData.name.trim()) return 'name';
+    if (!formData.description.trim()) return 'description';
     if (!formData.address.trim()) return 'address';
     if (!formData.start_date) return 'start_date';
     if (!formData.status) return 'status';
@@ -234,12 +235,16 @@ export function ConstructionList({
                 </div>
               </div>
               <div className={appConfig.spacing.formFields}>
-                <Label htmlFor="description">{t.description}</Label>
+                <Label htmlFor="description">{t.description} *</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, description: e.target.value });
+                    if (validationError === 'description') setValidationError(null);
+                  }}
                   placeholder={t.descriptionPlaceholder}
+                  className={validationError === 'description' ? 'border-red-500' : ''}
                   rows={3}
                 />
               </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Construction } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -31,19 +31,33 @@ export function ConstructionDashboard({
   const [activeTab, setActiveTab] = useState('inventory');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: construction.name,
-    description: construction.description || '',
-    address: construction.address,
-    start_date: construction.start_date?.split('T')[0] || '',
-    status: construction.status
+    name: '',
+    description: '',
+    address: '',
+    start_date: '',
+    status: 'planned' as Construction['status']
   });
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const { t } = useLanguage();
   const updateMutation = useUpdateConstruction();
 
+  // Sync form data when construction prop changes
+  useEffect(() => {
+    if (construction) {
+      setFormData({
+        name: construction.name || '',
+        description: construction.description || '',
+        address: construction.address || '',
+        start_date: construction.start_date ? construction.start_date.split('T')[0] : '',
+        status: construction.status || 'planned'
+      });
+    }
+  }, [construction]);
+
   const validateForm = () => {
     if (!formData.name.trim()) return 'name';
+    if (!formData.description.trim()) return 'description';
     if (!formData.address.trim()) return 'address';
     if (!formData.start_date) return 'start_date';
     if (!formData.status) return 'status';
@@ -52,11 +66,11 @@ export function ConstructionDashboard({
 
   const openEditDialog = () => {
     setFormData({
-      name: construction.name,
+      name: construction.name || '',
       description: construction.description || '',
-      address: construction.address,
-      start_date: construction.start_date?.split('T')[0] || '',
-      status: construction.status
+      address: construction.address || '',
+      start_date: construction.start_date ? construction.start_date.split('T')[0] : '',
+      status: construction.status || 'planned'
     });
     setValidationError(null);
     setEditDialogOpen(true);
@@ -227,11 +241,15 @@ export function ConstructionDashboard({
             </div>
 
             <div>
-              <Label htmlFor="edit-description">{t.description}</Label>
+              <Label htmlFor="edit-description">{t.description} *</Label>
               <Textarea
                 id="edit-description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, description: e.target.value });
+                  if (validationError === 'description') setValidationError(null);
+                }}
+                className={validationError === 'description' ? 'border-red-500' : ''}
                 rows={3}
               />
             </div>
