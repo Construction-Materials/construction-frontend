@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Construction, Material, StorageItem } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
@@ -8,12 +9,12 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { Package, Search, Filter, X } from 'lucide-react';
+import { Package, Search, Filter, X, RefreshCw } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { TablePagination, usePagination } from './shared/TablePagination';
 import { EmptyState } from './shared/EmptyState';
 import { useMaterialsByConstruction } from '@/hooks/use-materials';
-import { useStorageItemsByConstruction } from '@/hooks/use-storage-items';
+import { useStorageItemsByConstruction, storageItemKeys } from '@/hooks/use-storage-items';
 import { useCategories } from '@/hooks/use-categories';
 
 interface MaterialsInventoryProps {
@@ -27,6 +28,8 @@ export function MaterialsInventory({
 }: MaterialsInventoryProps) {
   const { data: materialsData, isLoading: materialsLoading, error: materialsError } = useMaterialsByConstruction(construction.construction_id);
   const { data: storageData, isLoading: storageLoading, error: storageError } = useStorageItemsByConstruction(construction.construction_id);
+  const queryClient = useQueryClient();
+  const [isReloading, setIsReloading] = useState(false);
   const { data: categoriesData } = useCategories();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -100,6 +103,15 @@ export function MaterialsInventory({
     setSearchQuery(value);
     pagination.resetPage();
   };
+
+  // Reload data
+  const handleReload = useCallback(async () => {
+    setIsReloading(true);
+    await queryClient.invalidateQueries({
+      queryKey: storageItemKeys.byConstruction(construction.construction_id),
+    });
+    setIsReloading(false);
+  }, [queryClient, construction.construction_id]);
 
   return (
     <div className="space-y-4">
@@ -202,6 +214,17 @@ export function MaterialsInventory({
                     </div>
                   </PopoverContent>
                 </Popover>
+
+                {/* Reload button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleReload}
+                  disabled={isReloading}
+                  title={t.reload}
+                >
+                  <RefreshCw className={`size-4 ${isReloading ? 'animate-spin' : ''}`} />
+                </Button>
 
                 {/* Active category filters display */}
                 {selectedCategories.size > 0 && (

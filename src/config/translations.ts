@@ -171,6 +171,7 @@ export const translations = {
     of: 'z',
     noMatchingMaterials: 'Brak materiałów spełniających kryteria',
     rowsPerPage: 'Wierszy na stronę',
+    reload: 'Odśwież',
 
     // Categories Manager
     noCategories: 'Brak kategorii',
@@ -381,6 +382,7 @@ export const translations = {
     of: 'of',
     noMatchingMaterials: 'No materials matching criteria',
     rowsPerPage: 'Rows per page',
+    reload: 'Reload',
 
     // Categories Manager
     noCategories: 'No categories',

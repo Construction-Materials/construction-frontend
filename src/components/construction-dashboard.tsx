@@ -10,14 +10,13 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Package, ClipboardList, Upload, Pencil } from 'lucide-react';
+import { Package, Upload, Pencil } from 'lucide-react';
 import { MaterialsInventory } from './materials-inventory';
-import { OrdersManager } from './orders-manager';
 import { DeliveryNoteImport } from './delivery-note-import';
 import { useLanguage } from '../contexts/LanguageContext';
 import { StatusBadge } from './shared/StatusBadge';
 import { ConstructionInfo } from './shared/ConstructionInfo';
-import { useUpdateConstruction } from '@/hooks/use-constructions';  
+import { useUpdateConstruction } from '@/hooks/use-constructions';
 import { appConfig } from '../config/app-config';
 
 interface ConstructionDashboardProps {
@@ -32,10 +31,7 @@ interface ConstructionDashboardProps {
 export function ConstructionDashboard({
   construction,
   materials,
-  orders,
   onUpdateConstruction,
-  onAddOrder,
-  onUpdateOrder
 }: ConstructionDashboardProps) {
   const [activeTab, setActiveTab] = useState('inventory');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -136,10 +132,6 @@ export function ConstructionDashboard({
             <Package className="size-4 mr-2" />
             {t.warehouse}
           </TabsTrigger>
-          {/* <TabsTrigger value="orders">
-            <ClipboardList className="size-4 mr-2" />
-            {t.orders}
-          </TabsTrigger> */}
           <TabsTrigger value="import">
             <Upload className="size-4 mr-2" />
             {t.importDeliveryNote}
