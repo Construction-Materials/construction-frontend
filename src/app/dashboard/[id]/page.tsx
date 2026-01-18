@@ -16,7 +16,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ArrowLeft, Trash2 } from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useConstruction, useUpdateConstruction, useDeleteConstruction } from '@/hooks/use-constructions';
 
@@ -24,7 +23,6 @@ export default function DashboardPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const { orders, addOrder, updateOrder } = useApp();
   const { t } = useLanguage();
   const { data: construction, isLoading, error } = useConstruction(id);
   const updateMutation = useUpdateConstruction();
@@ -43,8 +41,6 @@ export default function DashboardPage() {
       console.error('Failed to delete construction:', error);
     }
   };
-
-  const constructionOrders = orders.filter(o => o.constructionId === id);
 
   if (isLoading) {
     return (
@@ -92,10 +88,7 @@ export default function DashboardPage() {
         </div>
         <ConstructionDashboard
           construction={construction}
-          orders={constructionOrders}
           onUpdateConstruction={handleUpdateConstruction}
-          onAddOrder={addOrder}
-          onUpdateOrder={updateOrder}
         />
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

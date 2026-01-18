@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Construction, Order } from '@/types';
+import { Construction } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
@@ -21,10 +21,7 @@ import { appConfig } from '../config/app-config';
 
 interface ConstructionDashboardProps {
   construction: Construction;
-  orders: Order[];
   onUpdateConstruction: (id: string, updates: Partial<Construction>) => void;
-  onAddOrder: (order: Omit<Order, 'id'>) => void;
-  onUpdateOrder: (id: string, updates: Partial<Order>) => void;
 }
 
 export function ConstructionDashboard({

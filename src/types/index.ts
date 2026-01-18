@@ -7,23 +7,6 @@ export interface Material {
   created_at: string;
 }
 
-export interface ConstructionMaterial {
-  materialId: string;
-  quantity: number;
-}
-
-export interface Order {
-  id: string;
-  constructionId: string;
-  materialId: string;
-  quantity: number;
-  status: 'pending' | 'ordered' | 'delivered';
-  orderDate: string;
-  deliveryDate?: string;
-  supplier?: string;
-  notes?: string;
-}
-
 export interface Construction {
   construction_id: string;
   name: string;

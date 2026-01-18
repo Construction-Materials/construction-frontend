@@ -9,6 +9,14 @@ import {
 } from '@/lib/api/categories';
 import { Category } from '@/types';
 
+/*
+The queryKey is how React Query tracks your data in its cache.
+queryFn (The Fetcher) 
+React Query executes this function when it decides it needs data 
+(e.g., on component mount or when the queryKey changes). 
+It handles the await logic internally and exposes the result via data, isLoading, and isError.
+*/
+
 // Query keys
 export const categoryKeys = {
   all: ['categories'] as const,

@@ -43,12 +43,13 @@ export function Header() {
                 <span className="hidden sm:inline">{language === 'pl' ? 'English' : 'Polski'}</span>
                 <span className="sm:hidden">{language === 'pl' ? 'EN' : 'PL'}</span>
               </Button>
-              <Button onClick={() => window.location.href = 'http://127.0.0.1:8000/charts/'} variant="outline">
-                <Building2 className="size-4 mr-2" />
-                {t.charts}
-              </Button>
+
               {pathname === '/' && (
                 <>
+                  <Button onClick={() => window.location.href = 'http://127.0.0.1:8000/charts/'} variant="outline">
+                    <Building2 className="size-4 mr-2" />
+                    {t.charts}
+                  </Button>
                   <Button variant="outline" onClick={() => setCategoriesDialogOpen(true)}>
                     <Tag className="size-4" />
                     {t.categories}
