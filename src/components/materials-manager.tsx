@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Material } from '@/types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -23,10 +23,12 @@ import {
   AlertDialogTitle,
 } from './ui/alert-dialog';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useCategories } from '@/hooks/use-categories';
-import { useUpdateMaterial, useDeleteMaterial } from '@/hooks/use-materials';
+import { useCategories, categoryKeys } from '@/hooks/use-categories';
+import { useUpdateMaterial, useDeleteMaterial, materialKeys } from '@/hooks/use-materials';
 import { CategoriesManager } from './categories-manager';
 import { TablePagination, usePagination } from './shared/TablePagination';
+import { TableFilters } from './shared/TableFilters';
+import { useTableFilters } from '@/hooks/use-table-filters';
 import { appConfig } from '../config/app-config';
 
 interface MaterialsManagerProps {
@@ -110,13 +112,49 @@ export function MaterialsManager({
   const { t } = useLanguage();
   const pagination = usePagination(10);
 
-  // Paginate materials
-  const paginatedMaterials = pagination.paginateItems(materials);
+  // Query keys to invalidate on reload
+  const queryKeysToInvalidate = useMemo(() => [
+    materialKeys.all,
+    categoryKeys.all,
+  ], []);
 
-  // Helper function to get category name by ID
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find(c => c.category_id === categoryId);
-    return category?.name || t.noName;
+  // Use table filters hook
+  const {
+    searchQuery,
+    selectedCategories,
+    isReloading,
+    hasFilters,
+    filteredItems: filteredMaterials,
+    setSearchQuery,
+    toggleCategory,
+    clearCategoryFilters,
+    handleReload,
+    getCategoryName,
+  } = useTableFilters({
+    items: materials,
+    categories,
+    getItemName: (material) => material.name,
+    getItemCategoryId: (material) => material.category_id,
+    queryKeysToInvalidate,
+  });
+
+  // Paginate filtered materials
+  const paginatedMaterials = pagination.paginateItems(filteredMaterials);
+
+  // Reset pagination when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    pagination.resetPage();
+  };
+
+  const handleToggleCategory = (categoryId: string) => {
+    toggleCategory(categoryId);
+    pagination.resetPage();
+  };
+
+  const handleClearCategories = () => {
+    clearCategoryFilters();
+    pagination.resetPage();
   };
 
   return (
@@ -170,6 +208,27 @@ export function MaterialsManager({
 
           {!isLoading && !error && materials.length > 0 && (
             <>
+              <TableFilters
+                searchQuery={searchQuery}
+                onSearchChange={handleSearchChange}
+                categories={categories}
+                selectedCategories={selectedCategories}
+                onToggleCategory={handleToggleCategory}
+                onClearCategories={handleClearCategories}
+                getCategoryName={getCategoryName}
+                isReloading={isReloading}
+                onReload={handleReload}
+                showResultsCount={hasFilters}
+                filteredCount={filteredMaterials.length}
+                totalCount={materials.length}
+              />
+
+              {filteredMaterials.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-slate-600">{t.noMatchingMaterials}</p>
+                </div>
+              ) : (
+              <>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -218,11 +277,13 @@ export function MaterialsManager({
 
               <TablePagination
                 currentPage={pagination.currentPage}
-                totalItems={materials.length}
+                totalItems={filteredMaterials.length}
                 pageSize={pagination.pageSize}
                 onPageChange={pagination.handlePageChange}
                 onPageSizeChange={pagination.handlePageSizeChange}
               />
+              </>
+              )}
             </>
           )}
         </CardContent>

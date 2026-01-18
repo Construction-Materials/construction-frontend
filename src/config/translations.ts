@@ -108,8 +108,8 @@ export const translations = {
     optional: 'Opcjonalne',
     selectUnit: 'Wybierz jednostkę',
     selectCategory: 'Wybierz kategorię',
-    descriptionPlaceholder: 'Dodatkowe informacje o materiale...',
-    
+    materialDescriptionPlaceholder: 'Dodatkowe informacje o materiale...',
+
     // Delivery Note Import
     deliveryNoteImport: 'Import noty dostawy',
     deliveryNoteImportDesc: 'Prześlij zdjęcie lub PDF noty dostawy, lub wpisz dane ręcznie',
@@ -120,10 +120,8 @@ export const translations = {
     processWithAI: 'Przetwórz za pomocą AI',
     reviewMaterials: 'Przejrzyj i edytuj materiały',
     reviewMaterialsDesc: 'Sprawdź i zmodyfikuj materiały przed dodaniem do magazynu',
-    addToWarehouse: 'Dodaj do magazynu',
-    
+
     // Add Material Dialog
-    addMaterialToWarehouse: 'Dodaj materiał do magazynu',
     selectMaterial: 'Wybierz materiał',
     searchMaterials: 'Szukaj materiałów...',
     quantityToAdd: 'Ilość do dodania',
@@ -319,8 +317,8 @@ export const translations = {
     optional: 'Optional',
     selectUnit: 'Select unit',
     selectCategory: 'Select category',
-    descriptionPlaceholder: 'Additional information about the material...',
-    
+    materialDescriptionPlaceholder: 'Additional information about the material...',
+
     // Delivery Note Import
     deliveryNoteImport: 'Delivery Note Import',
     deliveryNoteImportDesc: 'Upload a photo or PDF of the delivery note, or enter data manually',
@@ -331,10 +329,8 @@ export const translations = {
     processWithAI: 'Process with AI',
     reviewMaterials: 'Review and Edit Materials',
     reviewMaterialsDesc: 'Review and modify materials before adding to warehouse',
-    addToWarehouse: 'Add to Warehouse',
-    
+
     // Add Material Dialog
-    addMaterialToWarehouse: 'Add Material to Warehouse',
     selectMaterial: 'Select Material',
     searchMaterials: 'Search materials...',
     quantityToAdd: 'Quantity to Add',

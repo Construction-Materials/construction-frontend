@@ -10,8 +10,8 @@ export interface StorageItemsResponse {
 }
 
 export interface StorageItemsQueryParams {
-  page?: number;
-  size?: number;
+  limit?: number;
+  offset?: number;
 }
 
 export async function getStorageItemsByConstruction(
@@ -19,8 +19,8 @@ export async function getStorageItemsByConstruction(
   params?: StorageItemsQueryParams
 ): Promise<StorageItemsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.page !== undefined) searchParams.append('page', params.page.toString());
-  if (params?.size !== undefined) searchParams.append('size', params.size.toString());
+  if (params?.limit !== undefined) searchParams.append('limit', params.limit.toString());
+  if (params?.offset !== undefined) searchParams.append('offset', params.offset.toString());
 
   const url = `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
 

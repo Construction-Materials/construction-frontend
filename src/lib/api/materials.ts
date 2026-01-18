@@ -10,16 +10,16 @@ export interface MaterialsResponse {
 }
 
 export interface MaterialsQueryParams {
-  page?: number;
-  size?: number;
+  limit?: number;
+  offset?: number;
 }
 
 export async function getMaterials(
   params?: MaterialsQueryParams
 ): Promise<MaterialsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.page !== undefined) searchParams.append('page', params.page.toString());
-  if (params?.size !== undefined) searchParams.append('size', params.size.toString());
+  if (params?.limit !== undefined) searchParams.append('limit', params.limit.toString());
+  if (params?.offset !== undefined) searchParams.append('offset', params.offset.toString());
 
   const url = `${API_BASE_URL}/api/v1/materials${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
   
@@ -116,8 +116,8 @@ export async function getMaterialsByConstruction(
   params?: MaterialsQueryParams
 ): Promise<MaterialsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.page !== undefined) searchParams.append('page', params.page.toString());
-  if (params?.size !== undefined) searchParams.append('size', params.size.toString());
+  if (params?.limit !== undefined) searchParams.append('limit', params.limit.toString());
+  if (params?.offset !== undefined) searchParams.append('offset', params.offset.toString());
 
   const url = `${API_BASE_URL}/api/v1/materials/by-construction/${constructionId}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
   
@@ -141,8 +141,8 @@ export async function getMaterialsByCategory(
   params?: MaterialsQueryParams
 ): Promise<MaterialsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.page !== undefined) searchParams.append('page', params.page.toString());
-  if (params?.size !== undefined) searchParams.append('size', params.size.toString());
+  if (params?.limit !== undefined) searchParams.append('limit', params.limit.toString());
+  if (params?.offset !== undefined) searchParams.append('offset', params.offset.toString());
 
   const url = `${API_BASE_URL}/api/v1/materials/category/${categoryId}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
   
