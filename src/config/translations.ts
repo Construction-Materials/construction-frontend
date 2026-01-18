@@ -183,7 +183,7 @@ export const translations = {
     deleteCategoryConfirm: 'Czy na pewno chcesz usunąć kategorię?',
     deleteCategoryConfirmDesc: 'Ta operacja jest nieodwracalna. Wszystkie materiały przypisane do tej kategorii mogą zostać bez kategorii.',
     editCategories: 'Edytuj kategorie',
-    manageCategories: 'Zarządzanie kategoriami',
+    manageCategoriesTitle: 'Zarządzanie kategoriami',
     manageCategoriesDesc: 'Dodaj, edytuj lub usuń kategorie materiałów',
 
     // Delivery Note Import Extended
@@ -392,7 +392,7 @@ export const translations = {
     deleteCategoryConfirm: 'Are you sure you want to delete this category?',
     deleteCategoryConfirmDesc: 'This action is irreversible. All materials assigned to this category may be left without a category.',
     editCategories: 'Edit categories',
-    manageCategories: 'Manage categories',
+    manageCategoriesTitle: 'Manage categories',
     manageCategoriesDesc: 'Add, edit or delete material categories',
 
     // Delivery Note Import Extended

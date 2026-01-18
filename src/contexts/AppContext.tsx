@@ -93,11 +93,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const updateMaterial = (id: string, updates: Partial<Material>) => {
-    setMaterials(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+    setMaterials(prev => prev.map(m => m.material_id === id ? { ...m, ...updates } : m));
   };
 
   const deleteMaterial = (id: string) => {
-    setMaterials(prev => prev.filter(m => m.id !== id));
+    setMaterials(prev => prev.filter(m => m.material_id !== id));
   };
 
   const addConstruction = (construction: Omit<Construction, 'construction_id' | 'created_at'>) => {

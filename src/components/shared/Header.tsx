@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, } from '@/components/ui/dialog';
 import { Languages, Package, Tag, Building2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter, usePathname } from 'next/navigation';
@@ -40,21 +40,21 @@ export function Header() {
                 className="gap-2"
               >
                 <Languages className="size-4" />
-                <span className="hidden sm:inline">{language === 'pl' ? 'Polski' : 'English'}</span>
-                <span className="sm:hidden">{language === 'pl' ? 'PL' : 'EN'}</span>
+                <span className="hidden sm:inline">{language === 'pl' ? 'English' : 'Polski'}</span>
+                <span className="sm:hidden">{language === 'pl' ? 'EN' : 'PL'}</span>
               </Button>
-              <Button onClick={() => window.location.href = 'http://127.0.0.1:8000/charts/ć'} variant="outline">
+              <Button onClick={() => window.location.href = 'http://127.0.0.1:8000/charts/'} variant="outline">
                 <Building2 className="size-4 mr-2" />
                 {t.charts}
               </Button>
               {pathname === '/' && (
                 <>
                   <Button variant="outline" onClick={() => setCategoriesDialogOpen(true)}>
-                    <Tag className="size-4"/>
+                    <Tag className="size-4" />
                     {t.categories}
                   </Button>
                   <Button onClick={handleGoToMaterials} variant="outline">
-                    <Package className="size-4"/>
+                    <Package className="size-4" />
                     {t.materials}
                   </Button>
                 </>
