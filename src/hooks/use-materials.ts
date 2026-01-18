@@ -10,6 +10,7 @@ import {
   type MaterialsQueryParams,
 } from '@/lib/api/materials';
 import { Material } from '@/types';
+import { showSuccessNotification, showErrorNotification } from '@/lib/notifications';
 
 // Query keys
 export const materialKeys = {
@@ -79,8 +80,11 @@ export function useCreateMaterial() {
       unit: string;
     }) => createMaterial(data),
     onSuccess: () => {
-      // Invalidate all material queries across the app
       queryClient.invalidateQueries({ queryKey: materialKeys.all });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }
@@ -93,8 +97,11 @@ export function useUpdateMaterial() {
     mutationFn: ({ id, data }: { id: string; data: Partial<Material> }) =>
       updateMaterial(id, data),
     onSuccess: () => {
-      // Invalidate all material queries across the app
       queryClient.invalidateQueries({ queryKey: materialKeys.all });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }
@@ -106,8 +113,11 @@ export function useDeleteMaterial() {
   return useMutation({
     mutationFn: (id: string) => deleteMaterial(id),
     onSuccess: () => {
-      // Invalidate all material queries across the app
       queryClient.invalidateQueries({ queryKey: materialKeys.all });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }

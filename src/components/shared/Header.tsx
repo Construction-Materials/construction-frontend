@@ -46,7 +46,7 @@ export function Header() {
 
               {pathname === '/' && (
                 <>
-                  <Button onClick={() => window.location.href = 'http://127.0.0.1:8000/charts/'} variant="outline">
+                  <Button onClick={() => window.location.href = process.env.NEXT_PUBLIC_CHARTS!} variant="outline">
                     <Building2 className="size-4 mr-2" />
                     {t.charts}
                   </Button>

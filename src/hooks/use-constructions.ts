@@ -8,6 +8,7 @@ import {
   type ConstructionsQueryParams,
 } from '@/lib/api/constructions';
 import { Construction } from '@/types';
+import { showSuccessNotification, showErrorNotification } from '@/lib/notifications';
 
 // Query keys
 export const constructionKeys = {
@@ -43,8 +44,11 @@ export function useCreateConstruction() {
     mutationFn: (data: Omit<Construction, 'construction_id' | 'created_at'>) =>
       createConstruction(data),
     onSuccess: () => {
-      // Invalidate queries, aby odświeżyć listę
       queryClient.invalidateQueries({ queryKey: constructionKeys.lists() });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }
@@ -57,9 +61,12 @@ export function useUpdateConstruction() {
     mutationFn: ({ id, data }: { id: string; data: Partial<Construction> }) =>
       updateConstruction(id, data),
     onSuccess: (data) => {
-      // Invalidate queries
       queryClient.invalidateQueries({ queryKey: constructionKeys.lists() });
       queryClient.invalidateQueries({ queryKey: constructionKeys.detail(data.construction_id) });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }
@@ -71,8 +78,11 @@ export function useDeleteConstruction() {
   return useMutation({
     mutationFn: (id: string) => deleteConstruction(id),
     onSuccess: () => {
-      // Invalidate queries
       queryClient.invalidateQueries({ queryKey: constructionKeys.lists() });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }

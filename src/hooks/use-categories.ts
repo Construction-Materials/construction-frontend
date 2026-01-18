@@ -8,6 +8,7 @@ import {
   type CategoriesQueryParams,
 } from '@/lib/api/categories';
 import { Category } from '@/types';
+import { showSuccessNotification, showErrorNotification } from '@/lib/notifications';
 
 /*
 The queryKey is how React Query tracks your data in its cache.
@@ -50,8 +51,11 @@ export function useCreateCategory() {
   return useMutation({
     mutationFn: (data: { name: string }) => createCategory(data),
     onSuccess: () => {
-      // Invalidate all category queries across the app
       queryClient.invalidateQueries({ queryKey: categoryKeys.all });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }
@@ -64,8 +68,11 @@ export function useUpdateCategory() {
     mutationFn: ({ id, data }: { id: string; data: { name: string } }) =>
       updateCategory(id, data),
     onSuccess: () => {
-      // Invalidate all category queries across the app
       queryClient.invalidateQueries({ queryKey: categoryKeys.all });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }
@@ -77,8 +84,11 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: (id: string) => deleteCategory(id),
     onSuccess: () => {
-      // Invalidate all category queries across the app
       queryClient.invalidateQueries({ queryKey: categoryKeys.all });
+      showSuccessNotification();
+    },
+    onError: () => {
+      showErrorNotification();
     },
   });
 }

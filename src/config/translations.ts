@@ -161,6 +161,10 @@ export const translations = {
     noName: 'Brak nazwy',
     fillAllRequiredFields: 'Proszę wypełnić wszystkie wymagane pola',
 
+    // Notifications
+    operationSuccess: 'Operacja zakończona sukcesem',
+    operationError: 'Wystąpił błąd',
+
     // Filters
     searchMaterial: 'Szukaj materiału...',
     searchConstruction: 'Szukaj budowy...',
@@ -374,6 +378,10 @@ export const translations = {
     saving: 'Saving...',
     noName: 'No name',
     fillAllRequiredFields: 'Please fill in all required fields',
+
+    // Notifications
+    operationSuccess: 'Operation completed successfully',
+    operationError: 'An error occurred',
 
     // Filters
     searchMaterial: 'Search material...',
