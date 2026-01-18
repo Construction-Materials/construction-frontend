@@ -42,8 +42,8 @@ export function useCreateCategory() {
   return useMutation({
     mutationFn: (data: { name: string }) => createCategory(data),
     onSuccess: () => {
-      // Invalidate queries, aby odświeżyć listę
-      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      // Invalidate all category queries across the app
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
     },
   });
 }
@@ -55,10 +55,9 @@ export function useUpdateCategory() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: { name: string } }) =>
       updateCategory(id, data),
-    onSuccess: (data) => {
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(data.category_id) });
+    onSuccess: () => {
+      // Invalidate all category queries across the app
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
     },
   });
 }
@@ -70,8 +69,8 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: (id: string) => deleteCategory(id),
     onSuccess: () => {
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      // Invalidate all category queries across the app
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
     },
   });
 }

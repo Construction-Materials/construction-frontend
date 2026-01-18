@@ -275,10 +275,8 @@ function AppContent() {
         {view === 'dashboard' && selectedConstructionId && (
           <ConstructionDashboard
             construction={constructions.find(c => c.id === selectedConstructionId)!}
-            materials={materials}
             orders={orders.filter(o => o.constructionId === selectedConstructionId)}
             onUpdateConstruction={handleUpdateConstruction}
-            onAddMaterial={handleAddMaterial}
             onAddOrder={handleAddOrder}
             onUpdateOrder={handleUpdateOrder}
           />

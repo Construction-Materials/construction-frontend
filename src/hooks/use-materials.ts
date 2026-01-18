@@ -79,8 +79,8 @@ export function useCreateMaterial() {
       unit: string;
     }) => createMaterial(data),
     onSuccess: () => {
-      // Invalidate queries, aby odświeżyć listę
-      queryClient.invalidateQueries({ queryKey: materialKeys.lists() });
+      // Invalidate all material queries across the app
+      queryClient.invalidateQueries({ queryKey: materialKeys.all });
     },
   });
 }
@@ -92,11 +92,9 @@ export function useUpdateMaterial() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Material> }) =>
       updateMaterial(id, data),
-    onSuccess: (data) => {
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: materialKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: materialKeys.detail(data.material_id) });
-      queryClient.invalidateQueries({ queryKey: materialKeys.byCategory(data.category_id) });
+    onSuccess: () => {
+      // Invalidate all material queries across the app
+      queryClient.invalidateQueries({ queryKey: materialKeys.all });
     },
   });
 }
@@ -108,8 +106,8 @@ export function useDeleteMaterial() {
   return useMutation({
     mutationFn: (id: string) => deleteMaterial(id),
     onSuccess: () => {
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: materialKeys.lists() });
+      // Invalidate all material queries across the app
+      queryClient.invalidateQueries({ queryKey: materialKeys.all });
     },
   });
 }

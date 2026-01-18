@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Construction, Material, Order } from '@/types';
+import { Construction, Order } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
@@ -21,7 +21,6 @@ import { appConfig } from '../config/app-config';
 
 interface ConstructionDashboardProps {
   construction: Construction;
-  materials: Material[];
   orders: Order[];
   onUpdateConstruction: (id: string, updates: Partial<Construction>) => void;
   onAddOrder: (order: Omit<Order, 'id'>) => void;
@@ -30,7 +29,6 @@ interface ConstructionDashboardProps {
 
 export function ConstructionDashboard({
   construction,
-  materials,
   onUpdateConstruction,
 }: ConstructionDashboardProps) {
   const [activeTab, setActiveTab] = useState('inventory');
@@ -147,7 +145,6 @@ export function ConstructionDashboard({
         <TabsContent value="import" className="mt-6">
           <DeliveryNoteImport
             construction={construction}
-            materials={materials}
             onUpdateConstruction={onUpdateConstruction}
             onComplete={() => setActiveTab('inventory')}
           />

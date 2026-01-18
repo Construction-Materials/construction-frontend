@@ -13,9 +13,9 @@ import { Package, Search, Filter, X, RefreshCw } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { TablePagination, usePagination } from './shared/TablePagination';
 import { EmptyState } from './shared/EmptyState';
-import { useMaterialsByConstruction } from '@/hooks/use-materials';
+import { useMaterialsByConstruction, materialKeys } from '@/hooks/use-materials';
 import { useStorageItemsByConstruction, storageItemKeys } from '@/hooks/use-storage-items';
-import { useCategories } from '@/hooks/use-categories';
+import { useCategories, categoryKeys } from '@/hooks/use-categories';
 
 interface MaterialsInventoryProps {
   construction: Construction;
@@ -107,9 +107,17 @@ export function MaterialsInventory({
   // Reload data
   const handleReload = useCallback(async () => {
     setIsReloading(true);
-    await queryClient.invalidateQueries({
-      queryKey: storageItemKeys.byConstruction(construction.construction_id),
-    });
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: storageItemKeys.byConstruction(construction.construction_id),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: materialKeys.byConstruction(construction.construction_id),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: categoryKeys.all,
+      }),
+    ]);
     setIsReloading(false);
   }, [queryClient, construction.construction_id]);
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Construction, Material } from '@/types';
+import { Construction } from '@/types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
@@ -16,12 +16,12 @@ import { cn } from './ui/utils';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories } from '@/hooks/use-categories';
 import { useBulkCreateStorageItems } from '@/hooks/use-storage-items';
+import { useMaterials } from '@/hooks/use-materials';
 import { analyzeDocument, ExtractedMaterial } from '@/lib/api/documents';
 import type { BulkStorageItemInput } from '@/lib/api/storage-items';
 
 interface DeliveryNoteImportProps {
   construction: Construction;
-  materials: Material[];
   onUpdateConstruction: (id: string, updates: Partial<Construction>) => void;
   onComplete: () => void;
 }
@@ -56,10 +56,11 @@ interface ManualMaterialRow {
 
 export function DeliveryNoteImport({
   construction,
-  materials,
   onUpdateConstruction,
   onComplete
 }: DeliveryNoteImportProps) {
+  const { data: materialsData } = useMaterials();
+  const materials = materialsData?.materials || [];
   const [processing, setProcessing] = useState(false);
   const [parsedMaterials, setParsedMaterials] = useState<ParsedMaterial[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
