@@ -2,6 +2,7 @@ import { StorageItem } from '@/types';
 
 const API_BASE_URL = '';
 
+// Kept for use by non-overlapping functions below
 export interface StorageItemsResponse {
   storage_items: StorageItem[];
   total: number;
@@ -14,6 +15,7 @@ export interface StorageItemsQueryParams {
   offset?: number;
 }
 
+// Not in new API — left unchanged
 export async function getStorageItemsByConstruction(
   constructionId: string,
   params?: StorageItemsQueryParams
@@ -26,30 +28,26 @@ export async function getStorageItemsByConstruction(
 
   const response = await fetch(url, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
   });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch storage items: ${response.statusText}`);
   }
 
-  const data = await response.json() as StorageItemsResponse;
-  return data;
+  return response.json() as Promise<StorageItemsResponse>;
 }
 
+// GET /storage-items/:constructionId/:materialId
 export async function getStorageItem(
   constructionId: string,
   materialId: string
 ): Promise<StorageItem> {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/material/${materialId}`,
+    `${API_BASE_URL}/api/v1/storage-items/${constructionId}/${materialId}`,
     {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
     }
   );
 
@@ -57,22 +55,20 @@ export async function getStorageItem(
     throw new Error(`Failed to fetch storage item: ${response.statusText}`);
   }
 
-  const data = await response.json() as StorageItem;
-  return data;
+  return response.json() as Promise<StorageItem>;
 }
 
+// PUT /storage-items/:constructionId/:materialId
 export async function updateStorageItem(
   constructionId: string,
   materialId: string,
-  data: { quantity_value: string }
+  data: { quantityValue: number }
 ): Promise<StorageItem> {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/material/${materialId}`,
+    `${API_BASE_URL}/api/v1/storage-items/${constructionId}/${materialId}`,
     {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }
   );
@@ -81,21 +77,19 @@ export async function updateStorageItem(
     throw new Error(`Failed to update storage item: ${response.statusText}`);
   }
 
-  const result = await response.json() as StorageItem;
-  return result;
+  return response.json() as Promise<StorageItem>;
 }
 
+// DELETE /storage-items/:constructionId/:materialId
 export async function deleteStorageItem(
   constructionId: string,
   materialId: string
 ): Promise<void> {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/material/${materialId}`,
+    `${API_BASE_URL}/api/v1/storage-items/${constructionId}/${materialId}`,
     {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
     }
   );
 
@@ -110,6 +104,7 @@ export interface BulkStorageItemInput {
   quantity_value: number;
 }
 
+// Not in new API — left unchanged
 export async function bulkCreateStorageItems(
   constructionId: string,
   items: BulkStorageItemInput[]
@@ -118,9 +113,7 @@ export async function bulkCreateStorageItems(
     `${API_BASE_URL}/api/v1/storage-items/construction/${constructionId}/bulk`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(items),
     }
   );
@@ -129,6 +122,5 @@ export async function bulkCreateStorageItems(
     throw new Error(`Failed to bulk create storage items: ${response.statusText}`);
   }
 
-  const data = await response.json() as StorageItem[];
-  return data;
+  return response.json() as Promise<StorageItem[]>;
 }

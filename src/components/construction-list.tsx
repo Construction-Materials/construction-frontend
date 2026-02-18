@@ -24,7 +24,7 @@ interface ConstructionListProps {
   isLoading?: boolean;
   error?: Error | null;
   onSelectConstruction: (id: string) => void;
-  onAddConstruction: (construction: Omit<Construction, 'construction_id' | 'created_at'>) => Promise<void>;
+  onAddConstruction: (construction: import('@/lib/api/constructions').CreateConstructionInput) => Promise<void>;
 }
 
 export function ConstructionList({
@@ -39,8 +39,8 @@ export function ConstructionList({
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    start_date: '',
-    status: 'planned' as Construction['status'],
+    startDate: '',
+    status: 'planned',
     description: ''
   });
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -98,7 +98,7 @@ export function ConstructionList({
     if (!formData.name.trim()) return 'name';
     if (!formData.description.trim()) return 'description';
     if (!formData.address.trim()) return 'address';
-    if (!formData.start_date) return 'start_date';
+    if (!formData.startDate) return 'startDate';
     if (!formData.status) return 'status';
     return null;
   };
@@ -118,7 +118,7 @@ export function ConstructionList({
       setFormData({
         name: '',
         address: '',
-        start_date: '',
+        startDate: '',
         status: 'planned',
         description: ''
       });
@@ -202,16 +202,16 @@ export function ConstructionList({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className={appConfig.spacing.formFields}>
-                  <Label htmlFor="start_date">{t.startDate} *</Label>
+                  <Label htmlFor="startDate">{t.startDate} *</Label>
                   <Input
-                    id="start_date"
+                    id="startDate"
                     type="date"
-                    value={formData.start_date}
+                    value={formData.startDate}
                     onChange={(e) => {
-                      setFormData({ ...formData, start_date: e.target.value });
-                      if (validationError === 'start_date') setValidationError(null);
+                      setFormData({ ...formData, startDate: e.target.value });
+                      if (validationError === 'startDate') setValidationError(null);
                     }}
-                    className={validationError === 'start_date' ? 'border-red-500' : ''}
+                    className={validationError === 'startDate' ? 'border-red-500' : ''}
                   />
                 </div>
                 <div className={appConfig.spacing.formFields}>
@@ -390,9 +390,9 @@ export function ConstructionList({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredConstructions.map((construction) => (
           <Card
-            key={construction.construction_id}
+            key={construction.constructionId}
             className="hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => onSelectConstruction(construction.construction_id)}
+            onClick={() => onSelectConstruction(construction.constructionId)}
           >
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
@@ -411,7 +411,7 @@ export function ConstructionList({
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Calendar className="size-4 flex-shrink-0" />
-                <span>{t.startedOn}: {new Date(construction.start_date).toLocaleDateString(t.locale)}</span>
+                <span>{t.startedOn}: {construction.startDate ? new Date(construction.startDate).toLocaleDateString(t.locale) : '—'}</span>
               </div>
             </CardContent>
           </Card>

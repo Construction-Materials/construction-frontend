@@ -5,37 +5,24 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
-  type CategoriesQueryParams,
 } from '@/lib/api/categories';
-import { Category } from '@/types';
 import { showSuccessNotification, showErrorNotification } from '@/lib/notifications';
 
-/*
-The queryKey is how React Query tracks your data in its cache.
-queryFn (The Fetcher) 
-React Query executes this function when it decides it needs data 
-(e.g., on component mount or when the queryKey changes). 
-It handles the await logic internally and exposes the result via data, isLoading, and isError.
-*/
-
-// Query keys
 export const categoryKeys = {
   all: ['categories'] as const,
   lists: () => [...categoryKeys.all, 'list'] as const,
-  list: (params?: CategoriesQueryParams) => [...categoryKeys.lists(), params] as const,
+  list: () => [...categoryKeys.lists()] as const,
   details: () => [...categoryKeys.all, 'detail'] as const,
   detail: (id: string) => [...categoryKeys.details(), id] as const,
 };
 
-// Hook do pobierania listy kategorii
-export function useCategories(params?: CategoriesQueryParams) {
+export function useCategories() {
   return useQuery({
-    queryKey: categoryKeys.list(params),
-    queryFn: () => getCategories(params),
+    queryKey: categoryKeys.list(),
+    queryFn: () => getCategories(),
   });
 }
 
-// Hook do pobierania pojedynczej kategorii
 export function useCategory(id: string) {
   return useQuery({
     queryKey: categoryKeys.detail(id),
@@ -44,7 +31,6 @@ export function useCategory(id: string) {
   });
 }
 
-// Hook do tworzenia kategorii
 export function useCreateCategory() {
   const queryClient = useQueryClient();
 
@@ -60,7 +46,6 @@ export function useCreateCategory() {
   });
 }
 
-// Hook do aktualizacji kategorii
 export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
@@ -77,7 +62,6 @@ export function useUpdateCategory() {
   });
 }
 
-// Hook do usuwania kategorii
 export function useDeleteCategory() {
   const queryClient = useQueryClient();
 
@@ -92,4 +76,3 @@ export function useDeleteCategory() {
     },
   });
 }
-

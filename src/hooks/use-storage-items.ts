@@ -20,6 +20,7 @@ export const storageItemKeys = {
     [...storageItemKeys.all, 'item', constructionId, materialId] as const,
 };
 
+// Not in new API — left unchanged
 export function useStorageItemsByConstruction(
   constructionId: string,
   params?: StorageItemsQueryParams
@@ -50,7 +51,7 @@ export function useUpdateStorageItem() {
     }: {
       constructionId: string;
       materialId: string;
-      data: { quantity_value: string };
+      data: { quantityValue: number };
     }) => updateStorageItem(constructionId, materialId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -90,6 +91,7 @@ export function useDeleteStorageItem() {
   });
 }
 
+// Not in new API — left unchanged
 export function useBulkCreateStorageItems() {
   const queryClient = useQueryClient();
 

@@ -12,30 +12,27 @@ import {
 import { Material } from '@/types';
 import { showSuccessNotification, showErrorNotification } from '@/lib/notifications';
 
-// Query keys
 export const materialKeys = {
   all: ['materials'] as const,
   lists: () => [...materialKeys.all, 'list'] as const,
-  list: (params?: MaterialsQueryParams) => [...materialKeys.lists(), params] as const,
+  list: () => [...materialKeys.lists()] as const,
   details: () => [...materialKeys.all, 'detail'] as const,
   detail: (id: string) => [...materialKeys.details(), id] as const,
   byConstruction: (constructionId: string) => [...materialKeys.all, 'by-construction', constructionId] as const,
-  byConstructionWithParams: (constructionId: string, params?: MaterialsQueryParams) => 
+  byConstructionWithParams: (constructionId: string, params?: MaterialsQueryParams) =>
     [...materialKeys.byConstruction(constructionId), params] as const,
   byCategory: (categoryId: string) => [...materialKeys.all, 'by-category', categoryId] as const,
-  byCategoryWithParams: (categoryId: string, params?: MaterialsQueryParams) => 
+  byCategoryWithParams: (categoryId: string, params?: MaterialsQueryParams) =>
     [...materialKeys.byCategory(categoryId), params] as const,
 };
 
-// Hook do pobierania wszystkich materiałów
-export function useMaterials(params?: MaterialsQueryParams) {
+export function useMaterials() {
   return useQuery({
-    queryKey: materialKeys.list(params),
-    queryFn: () => getMaterials(params),
+    queryKey: materialKeys.list(),
+    queryFn: () => getMaterials(),
   });
 }
 
-// Hook do pobierania pojedynczego materiału
 export function useMaterial(id: string) {
   return useQuery({
     queryKey: materialKeys.detail(id),
@@ -44,7 +41,7 @@ export function useMaterial(id: string) {
   });
 }
 
-// Hook do pobierania materiałów dla konstrukcji
+// Not in new API — left unchanged
 export function useMaterialsByConstruction(
   constructionId: string,
   params?: MaterialsQueryParams
@@ -56,7 +53,7 @@ export function useMaterialsByConstruction(
   });
 }
 
-// Hook do pobierania materiałów po kategorii
+// Not in new API — left unchanged
 export function useMaterialsByCategory(
   categoryId: string,
   params?: MaterialsQueryParams
@@ -68,16 +65,15 @@ export function useMaterialsByCategory(
   });
 }
 
-// Hook do tworzenia materiału
 export function useCreateMaterial() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: {
-      category_id: string;
       name: string;
       description: string;
-      unit: string;
+      categoryId: string;
+      unitId: string;
     }) => createMaterial(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: materialKeys.all });
@@ -89,12 +85,11 @@ export function useCreateMaterial() {
   });
 }
 
-// Hook do aktualizacji materiału
 export function useUpdateMaterial() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Material> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Pick<Material, 'name' | 'description' | 'categoryId' | 'unitId'>> }) =>
       updateMaterial(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: materialKeys.all });
@@ -106,7 +101,6 @@ export function useUpdateMaterial() {
   });
 }
 
-// Hook do usuwania materiału
 export function useDeleteMaterial() {
   const queryClient = useQueryClient();
 
@@ -121,4 +115,3 @@ export function useDeleteMaterial() {
     },
   });
 }
-

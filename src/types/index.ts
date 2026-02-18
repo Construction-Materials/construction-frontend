@@ -1,32 +1,38 @@
+export interface Unit {
+  unitId: string;
+  code: string;
+  name: string;
+}
+
 export interface Material {
-  material_id: string;
-  category_id: string;
+  materialId: string;
+  categoryId: string;
+  unitId: string;
   name: string;
   description: string;
-  unit: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export interface Construction {
-  construction_id: string;
+  constructionId: string;
   name: string;
   description: string;
   address: string;
-  start_date: string;
-  status: 'planned' | 'active' | 'completed';
-  created_at: string;
+  startDate: string | null;
+  status: string;
+  imgUrl: string | null;
+  createdAt: string;
 }
 
 export interface Category {
-  category_id: string;
+  categoryId: string;
   name: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export interface StorageItem {
-  construction_id: string;
-  material_id: string;
-  quantity_value: string;
-  created_at: string;
+  constructionId: string;
+  materialId: string;
+  quantityValue: number;
+  createdAt: string;
 }
-

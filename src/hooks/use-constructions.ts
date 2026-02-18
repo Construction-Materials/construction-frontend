@@ -5,29 +5,25 @@ import {
   createConstruction,
   updateConstruction,
   deleteConstruction,
-  type ConstructionsQueryParams,
+  type CreateConstructionInput,
 } from '@/lib/api/constructions';
-import { Construction } from '@/types';
 import { showSuccessNotification, showErrorNotification } from '@/lib/notifications';
 
-// Query keys
 export const constructionKeys = {
   all: ['constructions'] as const,
   lists: () => [...constructionKeys.all, 'list'] as const,
-  list: (params?: ConstructionsQueryParams) => [...constructionKeys.lists(), params] as const,
+  list: () => [...constructionKeys.lists()] as const,
   details: () => [...constructionKeys.all, 'detail'] as const,
   detail: (id: string) => [...constructionKeys.details(), id] as const,
 };
 
-// Hook do pobierania listy konstrukcji
-export function useConstructions(params?: ConstructionsQueryParams) {
+export function useConstructions() {
   return useQuery({
-    queryKey: constructionKeys.list(params),
-    queryFn: () => getConstructions(params),
+    queryKey: constructionKeys.list(),
+    queryFn: () => getConstructions(),
   });
 }
 
-// Hook do pobierania pojedynczej konstrukcji
 export function useConstruction(id: string) {
   return useQuery({
     queryKey: constructionKeys.detail(id),
@@ -36,13 +32,11 @@ export function useConstruction(id: string) {
   });
 }
 
-// Hook do tworzenia konstrukcji
 export function useCreateConstruction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Omit<Construction, 'construction_id' | 'created_at'>) =>
-      createConstruction(data),
+    mutationFn: (data: CreateConstructionInput) => createConstruction(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: constructionKeys.lists() });
       showSuccessNotification();
@@ -53,16 +47,15 @@ export function useCreateConstruction() {
   });
 }
 
-// Hook do aktualizacji konstrukcji
 export function useUpdateConstruction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Construction> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateConstructionInput> }) =>
       updateConstruction(id, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: constructionKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: constructionKeys.detail(data.construction_id) });
+      queryClient.invalidateQueries({ queryKey: constructionKeys.detail(data.constructionId) });
       showSuccessNotification();
     },
     onError: () => {
@@ -71,7 +64,6 @@ export function useUpdateConstruction() {
   });
 }
 
-// Hook do usuwania konstrukcji
 export function useDeleteConstruction() {
   const queryClient = useQueryClient();
 

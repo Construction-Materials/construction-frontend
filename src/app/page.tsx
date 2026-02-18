@@ -14,7 +14,7 @@ export default function HomePage() {
     router.push(`/dashboard/${id}`);
   };
 
-  const handleAddConstruction = async (construction: Omit<import('@/types').Construction, 'construction_id' | 'created_at'>) => {
+  const handleAddConstruction = async (construction: import('@/lib/api/constructions').CreateConstructionInput) => {
     await createMutation.mutateAsync(construction);
   };
 
@@ -23,7 +23,7 @@ export default function HomePage() {
       <Header />
       <main className="container mx-auto px-4 py-8">
         <ConstructionList
-          constructions={data?.constructions || []}
+          constructions={data || []}
           isLoading={isLoading}
           error={error}
           onSelectConstruction={handleSelectConstruction}
