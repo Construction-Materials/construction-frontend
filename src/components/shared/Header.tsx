@@ -46,10 +46,6 @@ export function Header() {
 
               {pathname === '/' && (
                 <>
-                  <Button onClick={() => window.location.href = process.env.NEXT_PUBLIC_CHARTS!} variant="outline">
-                    <Building2 className="size-4 mr-2" />
-                    {t.charts}
-                  </Button>
                   <Button variant="outline" onClick={() => setCategoriesDialogOpen(true)}>
                     <Tag className="size-4" />
                     {t.categories}

@@ -92,13 +92,13 @@ export function TableFilters({
               </div>
               <div className="flex flex-wrap gap-2">
                 {categories.map((category) => {
-                  const isSelected = selectedCategories.has(category.category_id);
+                  const isSelected = selectedCategories.has(category.categoryId);
                   return (
                     <Badge
-                      key={category.category_id}
+                      key={category.categoryId}
                       variant={isSelected ? 'default' : 'outline'}
                       className="cursor-pointer hover:bg-slate-100 transition-colors"
-                      onClick={() => onToggleCategory(category.category_id)}
+                      onClick={() => onToggleCategory(category.categoryId)}
                     >
                       {category.name}
                       {isSelected && (

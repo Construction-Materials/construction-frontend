@@ -13,7 +13,7 @@ export default function AddMaterialsPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { data: categoriesData } = useCategories();
-  const categories = categoriesData?.categories || [];
+  const categories = categoriesData || [];
   const createMutation = useCreateMaterial();
 
   const handleAddMaterials = async (newMaterials: Array<{ name: string; unit: string; category: string; description: string }>) => {
@@ -22,10 +22,10 @@ export default function AddMaterialsPage() {
       await Promise.all(
         newMaterials.map(material =>
           createMutation.mutateAsync({
-            category_id: material.category,
+            categoryId: material.category,
             name: material.name,
             description: material.description || '',
-            unit: material.unit
+            unitId: material.unit
           })
         )
       );

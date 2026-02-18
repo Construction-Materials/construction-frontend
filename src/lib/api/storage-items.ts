@@ -15,11 +15,10 @@ export interface StorageItemsQueryParams {
   offset?: number;
 }
 
-// Not in new API — left unchanged
 export async function getStorageItemsByConstruction(
   constructionId: string,
   params?: StorageItemsQueryParams
-): Promise<StorageItemsResponse> {
+): Promise<StorageItem[]> {
   const searchParams = new URLSearchParams();
   if (params?.limit !== undefined) searchParams.append('limit', params.limit.toString());
   if (params?.offset !== undefined) searchParams.append('offset', params.offset.toString());
@@ -35,7 +34,7 @@ export async function getStorageItemsByConstruction(
     throw new Error(`Failed to fetch storage items: ${response.statusText}`);
   }
 
-  return response.json() as Promise<StorageItemsResponse>;
+  return response.json() as Promise<StorageItem[]>;
 }
 
 // GET /storage-items/:constructionId/:materialId
@@ -99,12 +98,10 @@ export async function deleteStorageItem(
 }
 
 export interface BulkStorageItemInput {
-  construction_id: string;
-  material_id: string;
-  quantity_value: number;
+  materialId: string;
+  quantityValue: number;
 }
 
-// Not in new API — left unchanged
 export async function bulkCreateStorageItems(
   constructionId: string,
   items: BulkStorageItemInput[]
@@ -114,7 +111,7 @@ export async function bulkCreateStorageItems(
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(items),
+      body: JSON.stringify({ items }),
     }
   );
 

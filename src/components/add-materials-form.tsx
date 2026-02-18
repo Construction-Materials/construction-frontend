@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Plus, Trash2, Package } from 'lucide-react';
 import { appConfig } from '../config/app-config';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useUnits } from '@/hooks/use-units';
 
 interface MaterialFormData {
   name: string;
@@ -20,7 +21,7 @@ interface MaterialFormData {
 
 interface AddMaterialsFormProps {
   onAddMaterials: (materials: MaterialFormData[]) => Promise<void>;
-  categories: Array<{ category_id: string; name: string }>;
+  categories: Array<{ categoryId: string; name: string }>;
   isLoading?: boolean;
 }
 
@@ -28,6 +29,8 @@ export function AddMaterialsForm({ onAddMaterials, categories, isLoading = false
   const [materials, setMaterials] = useState<MaterialFormData[]>([
     { name: '', unit: '', category: '', description: '' }
   ]);
+  const { data: unitsData } = useUnits();
+  const units = unitsData || [];
 
   const handleAddRow = () => {
     setMaterials([
@@ -118,9 +121,9 @@ export function AddMaterialsForm({ onAddMaterials, categories, isLoading = false
                             <SelectValue placeholder={t.selectUnit} />
                           </SelectTrigger>
                           <SelectContent>
-                            {appConfig.materialUnits.map(unit => (
-                              <SelectItem key={unit.value} value={unit.value}>
-                                {unit.label}
+                            {units.map(unit => (
+                              <SelectItem key={unit.unitId} value={unit.unitId}>
+                                {unit.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -145,7 +148,7 @@ export function AddMaterialsForm({ onAddMaterials, categories, isLoading = false
                             </div>
                           ) : (
                             categories.map(category => (
-                              <SelectItem key={category.category_id} value={category.category_id}>
+                              <SelectItem key={category.categoryId} value={category.categoryId}>
                                 {category.name}
                               </SelectItem>
                             ))

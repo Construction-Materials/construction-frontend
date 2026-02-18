@@ -13,6 +13,7 @@ import { EmptyState } from './shared/EmptyState';
 import { useMaterialsByConstruction, materialKeys } from '@/hooks/use-materials';
 import { useStorageItemsByConstruction, storageItemKeys } from '@/hooks/use-storage-items';
 import { useCategories, categoryKeys } from '@/hooks/use-categories';
+import { useUnitMap, unitKeys } from '@/hooks/use-units';
 import { useTableFilters } from '@/hooks/use-table-filters';
 
 interface MaterialsInventoryProps {
@@ -29,28 +30,30 @@ export function MaterialsInventory({
 
   // Fetch all data (up to API max of 100) for client-side filtering and pagination
   const { data: materialsData, isLoading: materialsLoading, error: materialsError } = useMaterialsByConstruction(
-    construction.construction_id,
+    construction.constructionId,
     { limit: 100 }
   );
   const { data: storageData, isLoading: storageLoading, error: storageError } = useStorageItemsByConstruction(
-    construction.construction_id,
+    construction.constructionId,
     { limit: 100 }
   );
   const { data: categoriesData } = useCategories();
+  const unitMap = useUnitMap();
 
-  const materials = materialsData?.materials || [];
-  const storageItems = storageData?.storage_items || [];
-  const categories = categoriesData?.categories || [];
+  const materials = materialsData || [];
+  const storageItems = storageData || [];
+  const categories = categoriesData || [];
 
   const isLoading = materialsLoading || storageLoading;
   const error = materialsError || storageError;
 
   // Query keys to invalidate on reload
   const queryKeysToInvalidate = useMemo(() => [
-    storageItemKeys.byConstruction(construction.construction_id),
-    materialKeys.byConstruction(construction.construction_id),
+    storageItemKeys.byConstruction(construction.constructionId),
+    materialKeys.byConstruction(construction.constructionId),
     categoryKeys.all,
-  ], [construction.construction_id]);
+    unitKeys.list(),
+  ], [construction.constructionId]);
 
   // Use table filters hook
   const {
@@ -68,7 +71,7 @@ export function MaterialsInventory({
     items: materials,
     categories,
     getItemName: (material) => material.name,
-    getItemCategoryId: (material) => material.category_id,
+    getItemCategoryId: (material) => material.categoryId,
     queryKeysToInvalidate,
   });
 
@@ -76,7 +79,7 @@ export function MaterialsInventory({
   const quantityMap = useMemo(() => {
     const map = new Map<string, string>();
     storageItems.forEach((item) => {
-      map.set(item.material_id, item.quantity_value);
+      map.set(item.materialId, String(item.quantityValue));
     });
     return map;
   }, [storageItems]);
@@ -168,9 +171,9 @@ export function MaterialsInventory({
                     </TableHeader>
                     <TableBody>
                       {paginatedMaterials.map((material) => {
-                        const quantity = quantityMap.get(material.material_id) || '0';
+                        const quantity = quantityMap.get(material.materialId) || '0';
                         return (
-                          <TableRow key={material.material_id}>
+                          <TableRow key={material.materialId}>
                             <TableCell className="max-w-[250px]">
                               <div className="font-medium truncate" title={material.name}>{material.name}</div>
                               {material.description && (
@@ -178,13 +181,13 @@ export function MaterialsInventory({
                               )}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline">{getCategoryName(material.category_id)}</Badge>
+                              <Badge variant="outline">{getCategoryName(material.categoryId)}</Badge>
                             </TableCell>
                             <TableCell className="text-right font-medium">
                               {quantity}
                             </TableCell>
                             <TableCell className="text-right">
-                              {material.unit}
+                              {unitMap.get(material.unitId)?.name ?? material.unitId}
                             </TableCell>
                           </TableRow>
                         );

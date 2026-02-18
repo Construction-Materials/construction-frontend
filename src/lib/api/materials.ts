@@ -91,7 +91,7 @@ export async function deleteMaterial(id: string): Promise<void> {
 export async function getMaterialsByConstruction(
   constructionId: string,
   params?: MaterialsQueryParams
-): Promise<MaterialsResponse> {
+): Promise<Material[]> {
   const searchParams = new URLSearchParams();
   if (params?.limit !== undefined) searchParams.append('limit', params.limit.toString());
   if (params?.offset !== undefined) searchParams.append('offset', params.offset.toString());
@@ -107,7 +107,7 @@ export async function getMaterialsByConstruction(
     throw new Error(`Failed to fetch materials: ${response.statusText}`);
   }
 
-  return response.json() as Promise<MaterialsResponse>;
+  return response.json() as Promise<Material[]>;
 }
 
 export async function getMaterialsByCategory(

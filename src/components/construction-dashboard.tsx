@@ -34,7 +34,7 @@ export function ConstructionDashboard({
     name: '',
     description: '',
     address: '',
-    start_date: '',
+    startDate: '',
     status: 'planned' as Construction['status']
   });
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export function ConstructionDashboard({
         name: construction.name || '',
         description: construction.description || '',
         address: construction.address || '',
-        start_date: construction.start_date ? construction.start_date.split('T')[0] : '',
+        startDate: construction.startDate ? construction.startDate.split('T')[0] : '',
         status: construction.status || 'planned'
       });
     }
@@ -59,7 +59,7 @@ export function ConstructionDashboard({
     if (!formData.name.trim()) return 'name';
     if (!formData.description.trim()) return 'description';
     if (!formData.address.trim()) return 'address';
-    if (!formData.start_date) return 'start_date';
+    if (!formData.startDate) return 'startDate';
     if (!formData.status) return 'status';
     return null;
   };
@@ -69,7 +69,7 @@ export function ConstructionDashboard({
       name: construction.name || '',
       description: construction.description || '',
       address: construction.address || '',
-      start_date: construction.start_date ? construction.start_date.split('T')[0] : '',
+      startDate: construction.startDate ? construction.startDate.split('T')[0] : '',
       status: construction.status || 'planned'
     });
     setValidationError(null);
@@ -95,12 +95,12 @@ export function ConstructionDashboard({
     setValidationError(null);
     try {
       await updateMutation.mutateAsync({
-        id: construction.construction_id,
+        id: construction.constructionId,
         data: {
           name: formData.name,
           description: formData.description,
           address: formData.address,
-          start_date: formData.start_date,
+          startDate: formData.startDate,
           status: formData.status as Construction['status']
         }
       });
@@ -209,12 +209,12 @@ export function ConstructionDashboard({
                 <Input
                   id="edit-start-date"
                   type="date"
-                  value={formData.start_date}
+                  value={formData.startDate}
                   onChange={(e) => {
-                    setFormData({ ...formData, start_date: e.target.value });
-                    if (validationError === 'start_date') setValidationError(null);
+                    setFormData({ ...formData, startDate: e.target.value });
+                    if (validationError === 'startDate') setValidationError(null);
                   }}
-                  className={validationError === 'start_date' ? 'border-red-500' : ''}
+                  className={validationError === 'startDate' ? 'border-red-500' : ''}
                 />
               </div>
               <div>

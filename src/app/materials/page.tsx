@@ -32,7 +32,7 @@ export default function MaterialsPage() {
           </Button>
         </div>
         <MaterialsManager
-          materials={data?.materials || []}
+          materials={data || []}
           isLoading={isLoading}
           error={error}
           onGoToAddMaterial={handleGoToAddMaterial}

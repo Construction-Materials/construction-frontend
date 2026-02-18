@@ -90,7 +90,7 @@ export function useTableFilters<T>({
 
   // Helper function to get category name by ID
   const getCategoryName = useCallback((categoryId: string) => {
-    const category = categories.find(c => c.category_id === categoryId);
+    const category = categories.find(c => c.categoryId === categoryId);
     return category?.name || '';
   }, [categories]);
 

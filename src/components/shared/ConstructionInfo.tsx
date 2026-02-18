@@ -20,7 +20,7 @@ export function ConstructionInfo({ construction }: ConstructionInfoProps) {
       <div className="flex items-center gap-2 text-sm">
         <Calendar className="size-4 text-slate-500 flex-shrink-0" />
         <span className="text-slate-700">
-          {t.startedOn}: {new Date(construction.start_date).toLocaleDateString(t.locale)}
+          {t.startedOn}: {construction.startDate ? new Date(construction.startDate).toLocaleDateString(t.locale) : '-'}
         </span>
       </div>
     </div>

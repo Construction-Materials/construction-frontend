@@ -25,11 +25,11 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories, categoryKeys } from '@/hooks/use-categories';
 import { useUpdateMaterial, useDeleteMaterial, materialKeys } from '@/hooks/use-materials';
+import { useUnits, useUnitMap, unitKeys } from '@/hooks/use-units';
 import { CategoriesManager } from './categories-manager';
 import { TablePagination, usePagination } from './shared/TablePagination';
 import { TableFilters } from './shared/TableFilters';
 import { useTableFilters } from '@/hooks/use-table-filters';
-import { appConfig } from '../config/app-config';
 
 interface MaterialsManagerProps {
   materials: Material[];
@@ -65,8 +65,8 @@ export function MaterialsManager({
           id: selectedMaterialId,
           data: {
             name: formData.name,
-            unit: formData.unit,
-            category_id: formData.category,
+            unitId: formData.unit,
+            categoryId: formData.category,
             description: formData.description || ''
           }
         });
@@ -82,11 +82,11 @@ export function MaterialsManager({
   const openEditDialog = (material: Material) => {
     setFormData({
       name: material.name,
-      unit: material.unit,
-      category: material.category_id,
+      unit: material.unitId,
+      category: material.categoryId,
       description: material.description || ''
     });
-    setSelectedMaterialId(material.material_id);
+    setSelectedMaterialId(material.materialId);
     setEditDialogOpen(true);
   };
 
@@ -108,7 +108,10 @@ export function MaterialsManager({
   };
 
   const { data: categoriesData } = useCategories();
-  const categories = categoriesData?.categories || [];
+  const categories = categoriesData || [];
+  const { data: unitsData } = useUnits();
+  const units = unitsData || [];
+  const unitMap = useUnitMap();
   const { t } = useLanguage();
   const pagination = usePagination(10);
 
@@ -116,6 +119,7 @@ export function MaterialsManager({
   const queryKeysToInvalidate = useMemo(() => [
     materialKeys.all,
     categoryKeys.all,
+    unitKeys.list(),
   ], []);
 
   // Use table filters hook
@@ -134,7 +138,7 @@ export function MaterialsManager({
     items: materials,
     categories,
     getItemName: (material) => material.name,
-    getItemCategoryId: (material) => material.category_id,
+    getItemCategoryId: (material) => material.categoryId,
     queryKeysToInvalidate,
   });
 
@@ -241,12 +245,12 @@ export function MaterialsManager({
                 </TableHeader>
                 <TableBody>
                   {paginatedMaterials.map((material) => (
-                    <TableRow key={material.material_id}>
+                    <TableRow key={material.materialId}>
                       <TableCell className="max-w-[200px] truncate" title={material.name}>{material.name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{getCategoryName(material.category_id)}</Badge>
+                        <Badge variant="outline">{getCategoryName(material.categoryId)}</Badge>
                       </TableCell>
-                      <TableCell>{material.unit}</TableCell>
+                      <TableCell>{unitMap.get(material.unitId)?.name ?? material.unitId}</TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         <span className="text-sm text-slate-600" title={material.description || ''}>
                           {material.description || '-'}
@@ -264,7 +268,7 @@ export function MaterialsManager({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => openDeleteDialog(material.material_id)}
+                            onClick={() => openDeleteDialog(material.materialId)}
                           >
                             <Trash2 className="size-4 text-red-600" />
                           </Button>
@@ -319,9 +323,9 @@ export function MaterialsManager({
                     <SelectValue placeholder={t.selectUnit} />
                   </SelectTrigger>
                   <SelectContent>
-                    {appConfig.materialUnits.map(unit => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.label}
+                    {units.map(unit => (
+                      <SelectItem key={unit.unitId} value={unit.unitId}>
+                        {unit.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -344,7 +348,7 @@ export function MaterialsManager({
                       </div>
                     ) : (
                       categories.map(category => (
-                        <SelectItem key={category.category_id} value={category.category_id}>
+                        <SelectItem key={category.categoryId} value={category.categoryId}>
                           {category.name}
                         </SelectItem>
                       ))

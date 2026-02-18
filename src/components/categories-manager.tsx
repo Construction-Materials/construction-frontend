@@ -22,7 +22,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 export function CategoriesManager() {
   const { data, isLoading, error } = useCategories();
-  const categories = data?.categories || [];
+  const categories = data || [];
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
@@ -36,7 +36,7 @@ export function CategoriesManager() {
 
   const handleOpenDialog = (categoryId?: string) => {
     if (categoryId) {
-      const category = categories.find(c => c.category_id === categoryId);
+      const category = categories.find(c => c.categoryId === categoryId);
       if (category) {
         setFormData({ name: category.name });
         setEditingCategoryId(categoryId);
@@ -131,21 +131,21 @@ export function CategoriesManager() {
               </TableHeader>
               <TableBody>
                 {categories.map((category) => (
-                  <TableRow key={category.category_id}>
+                  <TableRow key={category.categoryId}>
                     <TableCell className="font-medium max-w-[300px] truncate" title={category.name}>{category.name}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleOpenDialog(category.category_id)}
+                          onClick={() => handleOpenDialog(category.categoryId)}
                         >
                           <Pencil className="size-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => openDeleteDialog(category.category_id)}
+                          onClick={() => openDeleteDialog(category.categoryId)}
                         >
                           <Trash2 className="size-4 text-red-600" />
                         </Button>
