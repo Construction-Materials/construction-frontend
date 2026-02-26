@@ -131,3 +131,24 @@ export async function getMaterialsByCategory(
 
   return response.json() as Promise<MaterialsResponse>;
 }
+
+export interface MaterialSearchResult {
+  materialId: string;
+  name: string;
+  categoryName: string;
+  unitName: string;
+}
+
+export async function searchMaterials(query: string): Promise<MaterialSearchResult[]> {
+  const params = new URLSearchParams({ q: query });
+  const response = await fetch(`${API_BASE_URL}/api/v1/materials/search?${params}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to search materials: ${response.statusText}`);
+  }
+
+  return response.json() as Promise<MaterialSearchResult[]>;
+}

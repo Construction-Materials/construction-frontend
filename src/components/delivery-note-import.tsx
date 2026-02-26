@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Construction } from '@/types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -14,10 +14,9 @@ import { Badge } from './ui/badge';
 import { Upload, FileText, Plus, Pencil, Trash2, CheckCircle2, Loader2, ChevronsUpDown, Check, X, AlertCircle } from 'lucide-react';
 import { cn } from './ui/utils';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useCategories } from '@/hooks/use-categories';
 import { useBulkCreateStorageItems } from '@/hooks/use-storage-items';
-import { useMaterials } from '@/hooks/use-materials';
-import { analyzeDocument, ExtractedMaterial } from '@/lib/api/documents';
+import { analyzeDocument, MatchCandidate } from '@/lib/api/documents';
+import { searchMaterials, MaterialSearchResult } from '@/lib/api/materials';
 import type { BulkStorageItemInput } from '@/lib/api/storage-items';
 
 interface DeliveryNoteImportProps {
@@ -28,23 +27,13 @@ interface DeliveryNoteImportProps {
 
 interface ParsedMaterial {
   id: string;
+  extractedName: string;
   name: string;
   quantity: number;
   unit: string;
   category: string;
-  description?: string;
-  // Fields from API response
   material_id: string | null;
-  material_exists: boolean;
-  material_unit: string | null;
-  unit_matches: boolean;
-  can_use_quantity: boolean;
-  suggested_materials: Array<{
-    material_id: string;
-    name: string;
-    unit: string;
-    similarity_score: number;
-  }>;
+  matchCandidates: MatchCandidate[];
 }
 
 interface ManualMaterialRow {
@@ -52,6 +41,7 @@ interface ManualMaterialRow {
   quantity: string;
   unit: string;
   category: string;
+  material_id: string | null;
 }
 
 export function DeliveryNoteImport({
@@ -59,8 +49,6 @@ export function DeliveryNoteImport({
   onUpdateConstruction,
   onComplete
 }: DeliveryNoteImportProps) {
-  const { data: materialsData } = useMaterials();
-  const materials = materialsData?.materials || [];
   const [processing, setProcessing] = useState(false);
   const [parsedMaterials, setParsedMaterials] = useState<ParsedMaterial[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -69,20 +57,45 @@ export function DeliveryNoteImport({
     name: '',
     quantity: '',
     unit: '',
-    category: ''
+    category: '',
+    material_id: null as string | null,
   });
   const [manualMaterials, setManualMaterials] = useState<ManualMaterialRow[]>([
-    { name: '', quantity: '', unit: '', category: '' }
+    { name: '', quantity: '', unit: '', category: '', material_id: null }
   ]);
   const [openComboboxIndex, setOpenComboboxIndex] = useState<number | null>(null);
   const [editComboboxOpen, setEditComboboxOpen] = useState(false);
+  const [openReviewComboboxId, setOpenReviewComboboxId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<MaterialSearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const { t } = useLanguage();
   const bulkCreateMutation = useBulkCreateStorageItems();
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+    setSearchLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchMaterials(searchQuery);
+        setSearchResults(results);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const selectFile = (file: File) => {
     setSelectedFile(file);
@@ -95,22 +108,21 @@ export function DeliveryNoteImport({
     setError(null);
 
     try {
-      const response = await analyzeDocument(construction.construction_id, selectedFile);
+      const response = await analyzeDocument(construction.constructionId, selectedFile);
 
-      const parsed: ParsedMaterial[] = response.extracted_data.materials.map((material, index) => ({
-        id: `parsed-${Date.now()}-${index}`,
-        name: material.name,
-        quantity: material.quantity,
-        unit: material.unit,
-        category: '', // Will be set when user selects a material
-        description: '',
-        material_id: material.material_id,
-        material_exists: material.material_exists,
-        material_unit: material.material_unit,
-        unit_matches: material.unit_matches,
-        can_use_quantity: material.can_use_quantity,
-        suggested_materials: material.suggested_materials,
-      }));
+      const parsed: ParsedMaterial[] = response.extractedItems.map((item, index) => {
+        const first = item.matchCandidates[0] ?? null;
+        return {
+          id: `parsed-${Date.now()}-${index}`,
+          extractedName: item.extractedName,
+          name: first?.name ?? '',
+          quantity: item.extractedQuantity,
+          unit: first?.unitName ?? '',
+          category: first?.categoryName ?? '',
+          material_id: first?.materialId ?? null,
+          matchCandidates: item.matchCandidates,
+        };
+      });
 
       setParsedMaterials(parsed);
     } catch (err) {
@@ -171,20 +183,15 @@ export function DeliveryNoteImport({
     if (validManualMaterials.length === 0) return;
 
     const parsed: ParsedMaterial[] = validManualMaterials.map((row, index) => {
-      const existingMaterial = materials.find(m => m.name.toLowerCase() === row.name.toLowerCase());
       return {
         id: `manual-${Date.now()}-${index}`,
+        extractedName: row.name,
         name: row.name,
         quantity: parseFloat(row.quantity),
         unit: row.unit,
         category: row.category,
-        description: '',
-        material_id: existingMaterial?.material_id || null,
-        material_exists: !!existingMaterial,
-        material_unit: existingMaterial?.unit || null,
-        unit_matches: existingMaterial?.unit === row.unit,
-        can_use_quantity: true,
-        suggested_materials: [],
+        material_id: row.material_id,
+        matchCandidates: [],
       };
     });
 
@@ -197,7 +204,8 @@ export function DeliveryNoteImport({
       name: material.name,
       quantity: material.quantity.toString(),
       unit: material.unit,
-      category: material.category
+      category: material.category,
+      material_id: material.material_id,
     });
   };
 
@@ -209,11 +217,28 @@ export function DeliveryNoteImport({
             name: editForm.name,
             quantity: parseFloat(editForm.quantity),
             unit: editForm.unit,
-            category: editForm.category
+            category: editForm.category,
+            material_id: editForm.material_id,
           }
         : m
     ));
     setEditingId(null);
+  };
+
+  const applyCandidate = (
+    rowId: string,
+    candidate: { materialId: string; name: string; unitName: string; categoryName: string }
+  ) => {
+    setParsedMaterials(prev =>
+      prev.map(m =>
+        m.id === rowId
+          ? { ...m, name: candidate.name, unit: candidate.unitName, category: candidate.categoryName, material_id: candidate.materialId }
+          : m
+      )
+    );
+    setOpenReviewComboboxId(null);
+    setSearchQuery('');
+    setSearchResults([]);
   };
 
   const handleDelete = (id: string) => {
@@ -234,20 +259,19 @@ export function DeliveryNoteImport({
 
     try {
       const bulkItems: BulkStorageItemInput[] = validItems.map(pm => ({
-        construction_id: construction.construction_id,
-        material_id: pm.material_id!,
-        quantity_value: pm.quantity,
+        materialId: pm.material_id!,
+        quantityValue: pm.quantity,
       }));
 
       await bulkCreateMutation.mutateAsync({
-        constructionId: construction.construction_id,
+        constructionId: construction.constructionId,
         items: bulkItems,
       });
 
       // Reset state
       setParsedMaterials([]);
       setSelectedFile(null);
-      setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
+      setManualMaterials([{ name: '', quantity: '', unit: '', category: '', material_id: null }]);
       setEditingId(null);
       onComplete();
     } catch (err) {
@@ -261,18 +285,8 @@ export function DeliveryNoteImport({
   const handleReset = () => {
     setParsedMaterials([]);
     setSelectedFile(null);
-    setManualMaterials([{ name: '', quantity: '', unit: '', category: '' }]);
+    setManualMaterials([{ name: '', quantity: '', unit: '', category: '', material_id: null }]);
     setEditingId(null);
-  };
-
-  // TODO: Get categories from API instead of materials
-  const { data: categoriesData } = useCategories();
-  const categories = categoriesData?.categories || [];
-
-  // Helper function to get category name by ID
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find(c => c.category_id === categoryId);
-    return category?.name || '';
   };
 
   return (
@@ -400,7 +414,16 @@ export function DeliveryNoteImport({
                       {manualMaterials.map((row, index) => (
                         <TableRow key={index}>
                           <TableCell>
-                            <Popover open={openComboboxIndex === index} onOpenChange={(open) => setOpenComboboxIndex(open ? index : null)}>
+                            <Popover
+                              open={openComboboxIndex === index}
+                              onOpenChange={(open) => {
+                                setOpenComboboxIndex(open ? index : null);
+                                if (!open) {
+                                  setSearchQuery('');
+                                  setSearchResults([]);
+                                }
+                              }}
+                            >
                               <PopoverTrigger asChild>
                                 <Button
                                   variant="outline"
@@ -415,37 +438,48 @@ export function DeliveryNoteImport({
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="w-[300px] p-0" align="start" sideOffset={4}>
-                                <Command>
-                                  <CommandInput placeholder={t.searchMaterials} />
+                                <Command shouldFilter={false}>
+                                  <CommandInput
+                                    placeholder={t.searchMaterials}
+                                    onValueChange={(value) => setSearchQuery(value)}
+                                  />
                                   <CommandList className="h-[200px]">
-                                    <CommandEmpty>{t.noMatchingMaterials}</CommandEmpty>
-                                    <CommandGroup>
-                                      {materials.map((material) => (
-                                        <CommandItem
-                                          key={material.material_id}
-                                          value={material.name}
-                                          onSelect={(value) => {
-                                            const selectedMaterial = materials.find(m => m.name.toLowerCase() === value.toLowerCase());
-                                            if (selectedMaterial) {
-                                              const newRows = [...manualMaterials];
-                                              newRows[index].name = selectedMaterial.name;
-                                              newRows[index].unit = selectedMaterial.unit;
-                                              newRows[index].category = selectedMaterial.category_id;
-                                              setManualMaterials(newRows);
-                                            }
-                                            setOpenComboboxIndex(null);
-                                          }}
-                                        >
-                                          <Check
-                                            className={cn(
-                                              "mr-2 size-4",
-                                              row.name === material.name ? "opacity-100" : "opacity-0"
-                                            )}
-                                          />
-                                          {material.name}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
+                                    {searchLoading ? (
+                                      <div className="flex items-center justify-center py-6">
+                                        <Loader2 className="size-4 animate-spin text-slate-400" />
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <CommandEmpty>{t.noMatchingMaterials}</CommandEmpty>
+                                        <CommandGroup>
+                                          {searchResults.map((material) => (
+                                            <CommandItem
+                                              key={material.materialId}
+                                              value={material.name}
+                                              onSelect={() => {
+                                                const newRows = [...manualMaterials];
+                                                newRows[index].name = material.name;
+                                                newRows[index].unit = material.unitName;
+                                                newRows[index].category = material.categoryName;
+                                                newRows[index].material_id = material.materialId;
+                                                setManualMaterials(newRows);
+                                                setOpenComboboxIndex(null);
+                                                setSearchQuery('');
+                                                setSearchResults([]);
+                                              }}
+                                            >
+                                              <Check
+                                                className={cn(
+                                                  "mr-2 size-4",
+                                                  row.name === material.name ? "opacity-100" : "opacity-0"
+                                                )}
+                                              />
+                                              {material.name}
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      </>
+                                    )}
                                   </CommandList>
                                 </Command>
                               </PopoverContent>
@@ -474,7 +508,7 @@ export function DeliveryNoteImport({
                           </TableCell>
                           <TableCell>
                             <Input
-                              value={getCategoryName(row.category)}
+                              value={row.category}
                               disabled
                               placeholder="Auto"
                               className="bg-slate-50"
@@ -505,7 +539,7 @@ export function DeliveryNoteImport({
                   variant="outline"
                   onClick={() => {
                     const newRows = [...manualMaterials];
-                    newRows.push({ name: '', quantity: '', unit: '', category: '' });
+                    newRows.push({ name: '', quantity: '', unit: '', category: '', material_id: null });
                     setManualMaterials(newRows);
                   }}
                   className="w-full"
@@ -555,7 +589,16 @@ export function DeliveryNoteImport({
                       {editingId === material.id ? (
                         <>
                           <TableCell>
-                            <Popover open={editComboboxOpen} onOpenChange={setEditComboboxOpen}>
+                            <Popover
+                              open={editComboboxOpen}
+                              onOpenChange={(open) => {
+                                setEditComboboxOpen(open);
+                                if (!open) {
+                                  setSearchQuery('');
+                                  setSearchResults([]);
+                                }
+                              }}
+                            >
                               <PopoverTrigger asChild>
                                 <Button
                                   variant="outline"
@@ -570,38 +613,49 @@ export function DeliveryNoteImport({
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="w-[300px] p-0" align="start" sideOffset={4}>
-                                <Command>
-                                  <CommandInput placeholder={t.searchMaterials} />
+                                <Command shouldFilter={false}>
+                                  <CommandInput
+                                    placeholder={t.searchMaterials}
+                                    onValueChange={(value) => setSearchQuery(value)}
+                                  />
                                   <CommandList className="h-[200px]">
-                                    <CommandEmpty>{t.noMatchingMaterials}</CommandEmpty>
-                                    <CommandGroup>
-                                      {materials.map((mat) => (
-                                        <CommandItem
-                                          key={mat.material_id}
-                                          value={mat.name}
-                                          onSelect={(value) => {
-                                            const selectedMaterial = materials.find(m => m.name.toLowerCase() === value.toLowerCase());
-                                            if (selectedMaterial) {
-                                              setEditForm({
-                                                ...editForm,
-                                                name: selectedMaterial.name,
-                                                unit: selectedMaterial.unit,
-                                                category: selectedMaterial.category_id
-                                              });
-                                            }
-                                            setEditComboboxOpen(false);
-                                          }}
-                                        >
-                                          <Check
-                                            className={cn(
-                                              "mr-2 size-4",
-                                              editForm.name === mat.name ? "opacity-100" : "opacity-0"
-                                            )}
-                                          />
-                                          {mat.name}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
+                                    {searchLoading ? (
+                                      <div className="flex items-center justify-center py-6">
+                                        <Loader2 className="size-4 animate-spin text-slate-400" />
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <CommandEmpty>{t.noMatchingMaterials}</CommandEmpty>
+                                        <CommandGroup>
+                                          {searchResults.map((mat) => (
+                                            <CommandItem
+                                              key={mat.materialId}
+                                              value={mat.name}
+                                              onSelect={() => {
+                                                setEditForm({
+                                                  ...editForm,
+                                                  name: mat.name,
+                                                  unit: mat.unitName,
+                                                  category: mat.categoryName,
+                                                  material_id: mat.materialId,
+                                                });
+                                                setEditComboboxOpen(false);
+                                                setSearchQuery('');
+                                                setSearchResults([]);
+                                              }}
+                                            >
+                                              <Check
+                                                className={cn(
+                                                  "mr-2 size-4",
+                                                  editForm.name === mat.name ? "opacity-100" : "opacity-0"
+                                                )}
+                                              />
+                                              {mat.name}
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      </>
+                                    )}
                                   </CommandList>
                                 </Command>
                               </PopoverContent>
@@ -624,7 +678,7 @@ export function DeliveryNoteImport({
                           </TableCell>
                           <TableCell>
                             <Input
-                              value={getCategoryName(editForm.category)}
+                              value={editForm.category}
                               disabled
                               className="bg-slate-50"
                             />
@@ -646,11 +700,95 @@ export function DeliveryNoteImport({
                         </>
                       ) : (
                         <>
-                          <TableCell className="max-w-[200px] truncate" title={material.name}>{material.name}</TableCell>
+                          <TableCell>
+                            <Popover
+                              open={openReviewComboboxId === material.id}
+                              onOpenChange={(open) => {
+                                setOpenReviewComboboxId(open ? material.id : null);
+                                if (!open) {
+                                  setSearchQuery('');
+                                  setSearchResults([]);
+                                }
+                              }}
+                            >
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={openReviewComboboxId === material.id}
+                                  className="w-full justify-between font-normal"
+                                >
+                                  <span className="truncate">
+                                    {material.name || t.selectMaterialPlaceholder}
+                                  </span>
+                                  <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[300px] p-0" align="start" sideOffset={4}>
+                                <Command shouldFilter={false}>
+                                  <CommandInput
+                                    placeholder={t.searchMaterials}
+                                    onValueChange={(value) => setSearchQuery(value)}
+                                  />
+                                  <CommandList className="h-[200px]">
+                                    {!searchQuery.trim() ? (
+                                      <CommandGroup>
+                                        {material.matchCandidates.map((candidate) => (
+                                          <CommandItem
+                                            key={candidate.materialId}
+                                            value={candidate.name}
+                                            onSelect={() => applyCandidate(material.id, candidate)}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 size-4",
+                                                material.material_id === candidate.materialId ? "opacity-100" : "opacity-0"
+                                              )}
+                                            />
+                                            {candidate.name}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    ) : searchLoading ? (
+                                      <div className="flex items-center justify-center py-6">
+                                        <Loader2 className="size-4 animate-spin text-slate-400" />
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <CommandEmpty>{t.noMatchingMaterials}</CommandEmpty>
+                                        <CommandGroup>
+                                          {searchResults.map((mat) => (
+                                            <CommandItem
+                                              key={mat.materialId}
+                                              value={mat.name}
+                                              onSelect={() => applyCandidate(material.id, {
+                                                materialId: mat.materialId,
+                                                name: mat.name,
+                                                unitName: mat.unitName,
+                                                categoryName: mat.categoryName,
+                                              })}
+                                            >
+                                              <Check
+                                                className={cn(
+                                                  "mr-2 size-4",
+                                                  material.material_id === mat.materialId ? "opacity-100" : "opacity-0"
+                                                )}
+                                              />
+                                              {mat.name}
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      </>
+                                    )}
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                          </TableCell>
                           <TableCell>{material.quantity.toLocaleString('pl-PL')}</TableCell>
                           <TableCell>{material.unit}</TableCell>
-                          <TableCell className="max-w-[150px] truncate" title={getCategoryName(material.category)}>
-                            <Badge variant="outline">{getCategoryName(material.category)}</Badge>
+                          <TableCell className="max-w-[150px] truncate" title={material.category}>
+                            <Badge variant="outline">{material.category}</Badge>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex gap-1 justify-end">

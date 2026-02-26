@@ -1,30 +1,22 @@
 const API_BASE_URL = '';
 
-export interface SuggestedMaterial {
-  material_id: string;
+export interface MatchCandidate {
+  materialId: string;
   name: string;
-  unit: string;
-  similarity_score: number;
+  unitName: string;
+  categoryName: string;
 }
 
-export interface ExtractedMaterial {
-  name: string;
-  unit: string;
-  quantity: number;
-  material_id: string | null;
-  material_exists: boolean;
-  material_unit: string | null;
-  unit_matches: boolean;
-  can_use_quantity: boolean;
-  suggested_materials: SuggestedMaterial[];
+export interface ExtractedItem {
+  extractedName: string;
+  extractedQuantity: number;
+  matchCandidates: MatchCandidate[];
 }
 
 export interface AnalyzeDocumentResponse {
-  construction_id: string;
-  file_name: string;
-  extracted_data: {
-    materials: ExtractedMaterial[];
-  };
+  constructionId: string;
+  fileName: string;
+  extractedItems: ExtractedItem[];
 }
 
 export async function analyzeDocument(
@@ -33,9 +25,10 @@ export async function analyzeDocument(
 ): Promise<AnalyzeDocumentResponse> {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('constructionId', constructionId);
 
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/constructions/${constructionId}/analyze-document`,
+    `${API_BASE_URL}/api/v1/document-analysis/analyze`,
     {
       method: 'POST',
       headers: {
